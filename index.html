@@ -61,10 +61,39 @@ tbody tr:hover{background:#f0f9ff;}
 .slot-card .rm{position:absolute;top:6px;right:8px;background:#ef4444;color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;}
 .badge{font-size:.65rem;font-weight:800;padding:3px 9px;border-radius:20px;}
 .podium-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 8px 24px rgba(12,45,85,.15);}
+
+/* ── Tela de Login ── */
+#login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#0a1628 0%,#0f2847 45%,#0a1628 100%);z-index:10000;padding:16px;}
+.login-box{background:var(--pergaminho);border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.45);padding:36px 32px;width:100%;max-width:380px;text-align:center;}
+.login-box h1{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:2px;margin:0 0 4px;
+  background:linear-gradient(90deg,#7dd3fc,#38bdf8 40%,#1d4ed8 75%,#0c2d55);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.login-box p.sub{margin:0 0 22px;color:#64748b;font-size:.82rem;font-weight:600;}
+.login-box input{border:1.5px solid #bfdbfe;border-radius:8px;padding:11px 13px;font-size:.9rem;width:100%;margin-bottom:12px;}
+.login-box input:focus{outline:none;border-color:var(--ouro);box-shadow:0 0 0 3px rgba(14,165,233,.15);}
+.login-box button{width:100%;background:linear-gradient(135deg,#1d4ed8,#0ea5e9);color:#fff;border:none;padding:12px;border-radius:9px;font-weight:800;font-size:.9rem;cursor:pointer;box-shadow:0 4px 14px rgba(14,165,233,.35);}
+.login-box button:active{transform:scale(.98);}
+.login-box button:disabled{opacity:.6;cursor:not-allowed;}
+#login-error{color:#ef4444;font-size:.78rem;font-weight:700;margin:10px 0 0;min-height:16px;}
+.btn-logout{background:#475569;color:#fff;border:none;padding:11px 16px;border-radius:10px;font-weight:800;cursor:pointer;font-size:.82rem;}
 </style>
 </head>
 <body>
-<div id="app">
+
+<div id="login-screen">
+  <div class="login-box">
+    <h1>EQUIPE GUERREIROS</h1>
+    <p class="sub">🔒 Acesso restrito · informe seu e-mail e senha</p>
+    <form id="login-form">
+      <input type="email" id="login-email" placeholder="E-mail" autocomplete="username" required>
+      <input type="password" id="login-password" placeholder="Senha" autocomplete="current-password" required>
+      <button type="submit" id="login-btn">Entrar</button>
+      <p id="login-error"></p>
+    </form>
+  </div>
+</div>
+
+<div id="app" style="display:none">
 
   <div class="header-wrap">
     <div class="brand">
@@ -74,7 +103,11 @@ tbody tr:hover{background:#f0f9ff;}
         <p>🏗️ Armazenagem &amp; Conferência · LB · LM · LV · Bloco 8</p>
       </div>
     </div>
-    <button class="btn-refresh" onclick="refreshAll()">🔄 Atualizar</button>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <span id="user-email-label" style="color:#7dd3fc;font-weight:700;font-size:.78rem;"></span>
+      <button class="btn-refresh" onclick="refreshAll()">🔄 Atualizar</button>
+      <button class="btn-logout" onclick="fbLogout()">🚪 Sair</button>
+    </div>
   </div>
 
   <div id="tabs">
@@ -948,6 +981,80 @@ autoSetStatus();
 document.getElementById('brand-logo-img').src=LOGO_B64;
 if(ciclosHistorico[0]) currentCicloView=ciclosHistorico[0];
 switchTab('equipe');
+</script>
+
+<!-- ══════════════════════════════════════════════
+     FIREBASE AUTHENTICATION (e-mail / senha)
+     ══════════════════════════════════════════════ -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import {
+    getAuth,
+    signInWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+  // ⚠️ SUBSTITUA pelos dados do SEU projeto Firebase
+  // (Console Firebase > Configurações do projeto > Seus apps > Config)
+  const firebaseConfig = {
+    apiKey: "AIzaSyBL9OkwmtXLIj5Uh3ef8lkp6Wxe-r2BPEE",
+    authDomain: "produtividade-recebimento.firebaseapp.com",
+    projectId: "produtividade-recebimento",
+    storageBucket: "produtividade-recebimento.firebasestorage.app",
+    messagingSenderId: "417639678946",
+    appId: "1:417639678946:web:5ecd878ff89513ffc96fbb"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  const loginScreen = document.getElementById('login-screen');
+  const appEl = document.getElementById('app');
+  const loginForm = document.getElementById('login-form');
+  const loginError = document.getElementById('login-error');
+  const loginBtn = document.getElementById('login-btn');
+  const userEmailLabel = document.getElementById('user-email-label');
+
+  // Controla o que é exibido conforme o estado de login
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      loginScreen.style.display = 'none';
+      appEl.style.display = '';
+      userEmailLabel.textContent = user.email;
+    } else {
+      loginScreen.style.display = 'flex';
+      appEl.style.display = 'none';
+    }
+  });
+
+  // Envio do formulário de login
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value.trim();
+    const senha = document.getElementById('login-password').value;
+    loginError.textContent = '';
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Entrando...';
+    try {
+      await signInWithEmailAndPassword(auth, email, senha);
+    } catch (err) {
+      const msgs = {
+        'auth/invalid-email': 'E-mail inválido.',
+        'auth/user-not-found': 'Usuário não encontrado.',
+        'auth/wrong-password': 'Senha incorreta.',
+        'auth/invalid-credential': 'E-mail ou senha inválidos.',
+        'auth/too-many-requests': 'Muitas tentativas. Tente novamente mais tarde.'
+      };
+      loginError.textContent = msgs[err.code] || 'Erro ao entrar. Verifique os dados.';
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Entrar';
+    }
+  });
+
+  // Função global de logout (chamada pelo botão "Sair")
+  window.fbLogout = () => signOut(auth);
 </script>
 </body>
 </html>
