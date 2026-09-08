@@ -16,7 +16,7 @@ body{font-family:'Inter',sans-serif;background:linear-gradient(160deg,#0a1628 0%
 ::-webkit-scrollbar{width:8px;height:8px;}
 ::-webkit-scrollbar-track{background:#0f2847;}
 ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--ouro),var(--brasa2));border-radius:8px;}
-#app{max-width:1440px;margin:0 auto;padding:18px;}
+#app{max-width:1800px;margin:0 auto;padding:18px;}
 .header-wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px;}
 .brand{display:flex;align-items:center;gap:14px;}
 .brand-icon{width:52px;height:52px;border-radius:50%;object-fit:cover;filter:drop-shadow(0 0 10px rgba(56,189,248,0.6));border:2px solid #38bdf8;}
@@ -40,6 +40,9 @@ body{font-family:'Inter',sans-serif;background:linear-gradient(160deg,#0a1628 0%
 .stat-ouro{background:linear-gradient(135deg,#0ea5e9,#38bdf8);}
 .stat-carvao{background:linear-gradient(135deg,#0f172a,#334155);}
 .stat-verde{background:linear-gradient(135deg,#166534,#16a34a);}
+.stat-clicavel{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;}
+.stat-clicavel:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.32);}
+.stat-clicavel:active{transform:translateY(-1px);}
 input[type=text],input[type=date],select{border:1.5px solid #bfdbfe;border-radius:8px;padding:9px 11px;font-size:.87rem;width:100%;}
 input:focus,select:focus{outline:none;border-color:var(--ouro);box-shadow:0 0 0 3px rgba(14,165,233,.15);}
 .btn{padding:9px 16px;border-radius:9px;font-weight:800;border:none;cursor:pointer;font-size:.82rem;}
@@ -231,15 +234,16 @@ tbody tr:hover{background:#f0f9ff;}
       <div id="pd-periodo-label" style="text-align:center;color:#0c2d55;font-weight:800;font-size:.95rem;"></div>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div class="stat stat-brasa"><div class="lbl">🚛 Quantidade de Carros</div><div class="val" id="pd-stat-carros">0</div></div>
-        <div class="stat stat-ouro"><div class="lbl">📦 Cargas Conferidas</div><div class="val" id="pd-stat-cargas">0</div></div>
-        <div class="stat stat-carvao"><div class="lbl">📥 Vol. Agendado</div><div class="val" id="pd-stat-volagenda">0</div></div>
-        <div class="stat stat-verde"><div class="lbl">✅ Vol. Recebido</div><div class="val" id="pd-stat-volrecebido">0</div></div>
-        <div class="stat stat-ouro"><div class="lbl">⚠️ Avarias (qtd)</div><div class="val" id="pd-stat-avarias">0</div></div>
-        <div class="stat stat-brasa"><div class="lbl">💸 Valor Devolução</div><div class="val" id="pd-stat-devolucao">R$ 0</div></div>
-        <div class="stat stat-carvao"><div class="lbl">⏱️ Tempo Médio/Carga</div><div class="val" id="pd-stat-tempomedio">-</div></div>
-        <div class="stat stat-verde"><div class="lbl">🔀 Bitrens Identificados</div><div class="val" id="pd-stat-bitrens">0</div></div>
+        <div class="stat stat-brasa stat-clicavel" onclick="pdAbrirDetalheCard('carros')"><div class="lbl">🚛 Quantidade de Carros</div><div class="val" id="pd-stat-carros">0</div></div>
+        <div class="stat stat-ouro stat-clicavel" onclick="pdAbrirDetalheCard('cargas')"><div class="lbl">📦 Cargas Conferidas</div><div class="val" id="pd-stat-cargas">0</div></div>
+        <div class="stat stat-carvao stat-clicavel" onclick="pdAbrirDetalheCard('volagenda')"><div class="lbl">📥 Vol. Agendado</div><div class="val" id="pd-stat-volagenda">0</div></div>
+        <div class="stat stat-verde stat-clicavel" onclick="pdAbrirDetalheCard('volrecebido')"><div class="lbl">✅ Vol. Recebido</div><div class="val" id="pd-stat-volrecebido">0</div></div>
+        <div class="stat stat-ouro stat-clicavel" onclick="pdAbrirDetalheCard('avarias')"><div class="lbl">⚠️ Avarias (qtd)</div><div class="val" id="pd-stat-avarias">0</div></div>
+        <div class="stat stat-brasa stat-clicavel" onclick="pdAbrirDetalheCard('devolucao')"><div class="lbl">💸 Valor Devolução</div><div class="val" id="pd-stat-devolucao">R$ 0</div></div>
+        <div class="stat stat-carvao stat-clicavel" onclick="pdAbrirDetalheCard('tempomedio')"><div class="lbl">⏱️ Tempo Médio/Carga</div><div class="val" id="pd-stat-tempomedio">-</div></div>
+        <div class="stat stat-verde stat-clicavel" onclick="pdAbrirDetalheCard('bitrens')"><div class="lbl">🔀 Bitrens Identificados</div><div class="val" id="pd-stat-bitrens">0</div></div>
       </div>
+      <p style="font-size:.72rem;color:#64748b;text-align:center;margin:-4px 0 0;">👆 Clique em um card acima para ver os registros exatos que compõem aquele número.</p>
       <p style="font-size:.75rem;color:#64748b;text-align:center;margin:-6px 0 0;">
         ℹ️ Regra de contagem: mesma placa + doca = 1 carro. Mesma placa em docas diferentes = bitrem, contado como 2 carros.
       </p>
@@ -500,6 +504,8 @@ tbody tr:hover{background:#f0f9ff;}
 <div id="rec-toast-wrap"></div>
 
 <div id="rec-modal-root"></div>
+
+<div id="pd-modal-root"></div>
 
 <script>
 /* Dados históricos importados de CONTROLE_RECEBIMENTO.xlsx (aba RECEBIMENTO CARGAS).
@@ -1788,6 +1794,178 @@ function renderPainelDia(){
   }).join('') || '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:16px;">Sem veículos no período/filtros selecionados</td></tr>';
 }
 
+/* ── Painel do Dia: detalhe ao clicar nos cards ── */
+function pdFecharDetalheCard(){ document.getElementById('pd-modal-root').innerHTML=''; }
+function pdConstruirTabelaDetalhe(colunas, linhas){
+  const thead='<tr>'+colunas.map(c=>`<th>${c.label}</th>`).join('')+'</tr>';
+  const tbody=linhas.length
+    ? linhas.map(item=>'<tr>'+colunas.map(c=>`<td${c.centro?' class="text-center"':''}>${c.get(item)}</td>`).join('')+'</tr>').join('')
+    : `<tr><td colspan="${colunas.length}" style="text-align:center;color:#94a3b8;padding:16px;">Nenhum registro encontrado.</td></tr>`;
+  return `<table><thead>${thead}</thead><tbody>${tbody}</tbody></table>`;
+}
+function pdAgruparVeiculos(regs){
+  const veiculosMap={};
+  regs.forEach(r=>{
+    if(!r.placa) return;
+    const chave=pdChaveVeiculo(r);
+    if(!veiculosMap[chave]) veiculosMap[chave]={placa:r.placa,doca:r.doca,cargas:0,conferentes:new Set(),fornecedores:new Set(),volRecebido:0,avarias:0};
+    const v=veiculosMap[chave];
+    v.cargas++;
+    if(r.conferente) v.conferentes.add(r.conferente);
+    if(r.fornecedor) v.fornecedores.add(r.fornecedor);
+    v.volRecebido+=Number(r.volRecebido||0);
+    v.avarias+=Number(r.avaria||0);
+  });
+  const veiculos=Object.values(veiculosMap);
+  const placasContagem={};
+  veiculos.forEach(v=>{ placasContagem[v.placa]=(placasContagem[v.placa]||0)+1; });
+  return {veiculos, placasContagem};
+}
+function pdAbrirDetalheCard(tipo){
+  const regs=pdFiltrarRegistros();
+  const {veiculos, placasContagem}=pdAgruparVeiculos(regs);
+  let titulo='', subtitulo='', corpoHtml='';
+
+  if(tipo==='carros'){
+    titulo='🚛 Quantidade de Carros — Detalhe';
+    subtitulo=`${veiculos.length} veículo(s) no período/filtros selecionados (placa + doca = 1 carro; mesma placa em docas diferentes = bitrem, contado como 2 carros)`;
+    const ordenados=[...veiculos].sort((a,b)=>(a.placa||'').localeCompare(b.placa||''));
+    corpoHtml=pdConstruirTabelaDetalhe([
+      {label:'Placa', get:v=>`<strong>${v.placa}</strong>${placasContagem[v.placa]>1?' <span class="badge" style="background:#fef3c7;color:#92400e;">🔀 Bitrem</span>':''}`},
+      {label:'Doca', get:v=>v.doca||'-', centro:true},
+      {label:'Cargas', get:v=>v.cargas, centro:true},
+      {label:'Conferente(s)', get:v=>[...v.conferentes].join(', ')||'-'},
+      {label:'Fornecedor(es)', get:v=>[...v.fornecedores].join(', ')||'-'},
+      {label:'Vol. Recebido', get:v=>pdFormatarNumero(v.volRecebido), centro:true},
+      {label:'Avarias', get:v=>pdFormatarNumero(v.avarias), centro:true},
+    ], ordenados);
+  }
+  else if(tipo==='cargas'){
+    titulo='📦 Cargas Conferidas — Detalhe';
+    subtitulo=`${regs.length} carga(s)/registro(s) conferido(s) no período/filtros selecionados`;
+    const ordenados=[...regs].sort((a,b)=>(a.placa||'').localeCompare(b.placa||'')||(Number(a.carga||0)-Number(b.carga||0)));
+    corpoHtml=pdConstruirTabelaDetalhe([
+      {label:'Data', get:r=>fmtDataBr(r.data)},
+      {label:'Placa', get:r=>r.placa||'-'},
+      {label:'Doca', get:r=>r.doca||'-', centro:true},
+      {label:'Carga', get:r=>r.carga||'-', centro:true},
+      {label:'Conferente', get:r=>r.conferente||'-'},
+      {label:'Fornecedor', get:r=>r.fornecedor||'-'},
+      {label:'Linha', get:r=>r.linha||'-', centro:true},
+      {label:'Vol. Recebido', get:r=>pdFormatarNumero(r.volRecebido), centro:true},
+    ], ordenados);
+  }
+  else if(tipo==='volagenda'){
+    titulo='📥 Vol. Agendado — Detalhe';
+    const total=regs.reduce((s,r)=>s+Number(r.volAgenda||0),0);
+    const comVol=regs.filter(r=>Number(r.volAgenda||0)>0);
+    subtitulo=`Total: ${pdFormatarNumero(total)} un. — soma de ${comVol.length} registro(s) com volume agendado`;
+    const ordenados=[...comVol].sort((a,b)=>Number(b.volAgenda||0)-Number(a.volAgenda||0));
+    corpoHtml=pdConstruirTabelaDetalhe([
+      {label:'Placa', get:r=>r.placa||'-'},
+      {label:'Doca', get:r=>r.doca||'-', centro:true},
+      {label:'Fornecedor', get:r=>r.fornecedor||'-'},
+      {label:'Linha', get:r=>r.linha||'-', centro:true},
+      {label:'Vol. Agendado', get:r=>pdFormatarNumero(r.volAgenda), centro:true},
+    ], ordenados);
+  }
+  else if(tipo==='volrecebido'){
+    titulo='✅ Vol. Recebido — Detalhe';
+    const total=regs.reduce((s,r)=>s+Number(r.volRecebido||0),0);
+    const comVol=regs.filter(r=>Number(r.volRecebido||0)>0);
+    subtitulo=`Total: ${pdFormatarNumero(total)} un. — soma de ${comVol.length} registro(s) com volume recebido`;
+    const ordenados=[...comVol].sort((a,b)=>Number(b.volRecebido||0)-Number(a.volRecebido||0));
+    corpoHtml=pdConstruirTabelaDetalhe([
+      {label:'Placa', get:r=>r.placa||'-'},
+      {label:'Doca', get:r=>r.doca||'-', centro:true},
+      {label:'Fornecedor', get:r=>r.fornecedor||'-'},
+      {label:'Linha', get:r=>r.linha||'-', centro:true},
+      {label:'Vol. Recebido', get:r=>pdFormatarNumero(r.volRecebido), centro:true},
+    ], ordenados);
+  }
+  else if(tipo==='avarias'){
+    titulo='⚠️ Avarias — Detalhe';
+    const total=regs.reduce((s,r)=>s+Number(r.avaria||0),0);
+    const comAvaria=regs.filter(r=>Number(r.avaria||0)>0);
+    subtitulo=`Total: ${pdFormatarNumero(total)} — ${comAvaria.length} registro(s) com avaria`;
+    const ordenados=[...comAvaria].sort((a,b)=>Number(b.avaria||0)-Number(a.avaria||0));
+    corpoHtml=pdConstruirTabelaDetalhe([
+      {label:'Placa', get:r=>r.placa||'-'},
+      {label:'Doca', get:r=>r.doca||'-', centro:true},
+      {label:'Fornecedor', get:r=>r.fornecedor||'-'},
+      {label:'Conferente', get:r=>r.conferente||'-'},
+      {label:'Avaria (qtd)', get:r=>pdFormatarNumero(r.avaria), centro:true},
+      {label:'Motivo DV', get:r=>r.motivoDv||'-'},
+      {label:'Valor Devolução', get:r=>pdFormatarMoeda(r.valorDevolucao), centro:true},
+    ], ordenados);
+  }
+  else if(tipo==='devolucao'){
+    titulo='💸 Valor Devolução — Detalhe';
+    const total=regs.reduce((s,r)=>s+Number(r.valorDevolucao||0),0);
+    const comDv=regs.filter(r=>Number(r.valorDevolucao||0)>0);
+    subtitulo=`Total: ${pdFormatarMoeda(total)} — ${comDv.length} registro(s) com valor de devolução`;
+    const ordenados=[...comDv].sort((a,b)=>Number(b.valorDevolucao||0)-Number(a.valorDevolucao||0));
+    corpoHtml=pdConstruirTabelaDetalhe([
+      {label:'Placa', get:r=>r.placa||'-'},
+      {label:'Doca', get:r=>r.doca||'-', centro:true},
+      {label:'Fornecedor', get:r=>r.fornecedor||'-'},
+      {label:'Motivo DV', get:r=>r.motivoDv||'-'},
+      {label:'Falta', get:r=>pdFormatarNumero(r.falta), centro:true},
+      {label:'Sobra', get:r=>pdFormatarNumero(r.sobra), centro:true},
+      {label:'Valor Devolução', get:r=>pdFormatarMoeda(r.valorDevolucao), centro:true},
+    ], ordenados);
+  }
+  else if(tipo==='tempomedio'){
+    titulo='⏱️ Tempo Médio/Carga — Detalhe';
+    const comTempo=regs.map(r=>{
+      const ini=pdMinutosDoDia(r.inicio), term=pdMinutosDoDia(r.termino);
+      if(ini==null||term==null) return null;
+      let d=term-ini; if(d<0) d+=1440;
+      return Object.assign({}, r, {_duracaoMin:d});
+    }).filter(Boolean);
+    const media=comTempo.length ? comTempo.reduce((a,b)=>a+b._duracaoMin,0)/comTempo.length : null;
+    subtitulo=`Média: ${pdFormatarMinutos(media)} — calculada sobre ${comTempo.length} registro(s) com início e término preenchidos`;
+    const ordenados=[...comTempo].sort((a,b)=>b._duracaoMin-a._duracaoMin);
+    corpoHtml=pdConstruirTabelaDetalhe([
+      {label:'Placa', get:r=>r.placa||'-'},
+      {label:'Doca', get:r=>r.doca||'-', centro:true},
+      {label:'Conferente', get:r=>r.conferente||'-'},
+      {label:'Início', get:r=>r.inicio||'-', centro:true},
+      {label:'Término', get:r=>r.termino||'-', centro:true},
+      {label:'Duração', get:r=>pdFormatarMinutos(r._duracaoMin), centro:true},
+    ], ordenados);
+  }
+  else if(tipo==='bitrens'){
+    titulo='🔀 Bitrens Identificados — Detalhe';
+    const bitrens=veiculos.filter(v=>placasContagem[v.placa]>1);
+    const placasUnicas=[...new Set(bitrens.map(v=>v.placa))];
+    subtitulo=`${placasUnicas.length} placa(s) identificada(s) em mais de uma doca (cada ocorrência extra é contada como 1 carro/bitrem)`;
+    const ordenados=[...bitrens].sort((a,b)=>(a.placa||'').localeCompare(b.placa||''));
+    corpoHtml=pdConstruirTabelaDetalhe([
+      {label:'Placa', get:v=>`<strong>${v.placa}</strong>`},
+      {label:'Doca', get:v=>v.doca||'-', centro:true},
+      {label:'Cargas', get:v=>v.cargas, centro:true},
+      {label:'Fornecedor(es)', get:v=>[...v.fornecedores].join(', ')||'-'},
+      {label:'Vol. Recebido', get:v=>pdFormatarNumero(v.volRecebido), centro:true},
+    ], ordenados);
+  }
+  else return;
+
+  document.getElementById('pd-modal-root').innerHTML=`
+  <div class="rec-modal-overlay" onclick="if(event.target===this) pdFecharDetalheCard()">
+    <div class="rec-modal-box" style="max-width:1100px;">
+      <div class="rec-modal-head">
+        <h3>${titulo}</h3>
+        <button class="rec-modal-close" onclick="pdFecharDetalheCard()">✕</button>
+      </div>
+      <div class="rec-modal-body">
+        <p style="margin:0 0 12px;color:#0c2d55;font-weight:700;font-size:.85rem;">${subtitulo}</p>
+        <div class="overflow-x-auto" style="max-height:60vh;">${corpoHtml}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
 /* ---------------- inicialização ---------------- */
 function initRecebimento(){
   recBuildSeedMap();
@@ -1972,9 +2150,17 @@ function tbAtualizarIconeMax(){
 async function tbEntrarTelaCheia(){
   const el=document.documentElement;
   try{
-    if(el.requestFullscreen) await el.requestFullscreen();
+    if(el.requestFullscreen) await el.requestFullscreen({navigationUI:'hide'});
     else if(el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
   }catch(e){ /* navegador pode bloquear sem gesto do usuário — ok, o botão ▢ resolve manualmente */ }
+  // Reforço: se por qualquer motivo a API de tela cheia não cobrir 100% do monitor
+  // (ex.: janela pop-up aberta via window.open), tenta também maximizar a própria janela.
+  try{
+    if(window.opener || (window.outerWidth < screen.availWidth) || (window.outerHeight < screen.availHeight)){
+      window.moveTo(0,0);
+      window.resizeTo(screen.availWidth, screen.availHeight);
+    }
+  }catch(e){ /* navegador pode bloquear resize/move de janelas não abertas por script — ok, ignora */ }
 }
 async function tbAlternarTelaCheia(){
   try{
@@ -2008,9 +2194,20 @@ function tbFechar(){
     alert('Por segurança, o navegador não permite fechar a aba automaticamente.\nPressione Ctrl+W (ou Cmd+W no Mac) para fechar, ou feche a aba manualmente.');
   },350);
 }
-// Tenta abrir automaticamente em tela cheia assim que o usuário interage (login),
-// pois os navegadores exigem um gesto do usuário para liberar a tela cheia.
+// Tenta abrir automaticamente em tela cheia por padrão, assim que a ferramenta é aberta.
+// Os navegadores exigem um gesto do usuário para liberar a tela cheia, então:
+// 1) tentamos direto ao carregar (funciona em alguns navegadores/PWAs instalados);
+// 2) disparamos também no envio do login (cobre quem ainda não está autenticado);
+// 3) e, como rede de segurança, no primeiro clique/toque/tecla em qualquer lugar da página
+//    (cobre quem já está com sessão salva e nunca vê a tela de login).
+tbEntrarTelaCheia();
 document.getElementById('login-form')?.addEventListener('submit', ()=>{ tbEntrarTelaCheia(); }, {capture:true});
+function tbTentarTelaCheiaNoPrimeiroGesto(){
+  if(!tbEmTelaCheia()) tbEntrarTelaCheia();
+}
+['pointerdown','keydown','touchstart'].forEach(evt=>{
+  document.addEventListener(evt, tbTentarTelaCheiaNoPrimeiroGesto, {capture:true, once:true});
+});
 document.getElementById('tb-close')?.setAttribute('title','Fechar (Ctrl+W se o navegador bloquear)');
 </script>
 </body>
