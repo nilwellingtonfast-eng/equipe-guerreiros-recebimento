@@ -2153,14 +2153,6 @@ async function tbEntrarTelaCheia(){
     if(el.requestFullscreen) await el.requestFullscreen({navigationUI:'hide'});
     else if(el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
   }catch(e){ /* navegador pode bloquear sem gesto do usuário — ok, o botão ▢ resolve manualmente */ }
-  // Reforço: se por qualquer motivo a API de tela cheia não cobrir 100% do monitor
-  // (ex.: janela pop-up aberta via window.open), tenta também maximizar a própria janela.
-  try{
-    if(window.opener || (window.outerWidth < screen.availWidth) || (window.outerHeight < screen.availHeight)){
-      window.moveTo(0,0);
-      window.resizeTo(screen.availWidth, screen.availHeight);
-    }
-  }catch(e){ /* navegador pode bloquear resize/move de janelas não abertas por script — ok, ignora */ }
 }
 async function tbAlternarTelaCheia(){
   try{
@@ -2197,17 +2189,13 @@ function tbFechar(){
 // Tenta abrir automaticamente em tela cheia por padrão, assim que a ferramenta é aberta.
 // Os navegadores exigem um gesto do usuário para liberar a tela cheia, então:
 // 1) tentamos direto ao carregar (funciona em alguns navegadores/PWAs instalados);
-// 2) disparamos também no envio do login (cobre quem ainda não está autenticado);
-// 3) e, como rede de segurança, no primeiro clique/toque/tecla em qualquer lugar da página
-//    (cobre quem já está com sessão salva e nunca vê a tela de login).
+// 2) disparamos também no envio do login (cobre quem ainda não está autenticado).
+// OBS: não usamos mais um "gatilho no primeiro clique em qualquer lugar da página" —
+// isso chegou a interceptar/cancelar o próprio clique do usuário (ex.: nos cards do
+// Painel do Dia) em alguns navegadores. O botão ▢ na barra de título continua sendo
+// o jeito manual e 100% confiável de entrar/sair da tela cheia a qualquer momento.
 tbEntrarTelaCheia();
 document.getElementById('login-form')?.addEventListener('submit', ()=>{ tbEntrarTelaCheia(); }, {capture:true});
-function tbTentarTelaCheiaNoPrimeiroGesto(){
-  if(!tbEmTelaCheia()) tbEntrarTelaCheia();
-}
-['pointerdown','keydown','touchstart'].forEach(evt=>{
-  document.addEventListener(evt, tbTentarTelaCheiaNoPrimeiroGesto, {capture:true, once:true});
-});
 document.getElementById('tb-close')?.setAttribute('title','Fechar (Ctrl+W se o navegador bloquear)');
 </script>
 </body>
