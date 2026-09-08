@@ -113,10 +113,35 @@ tbody tr:hover{background:#f0f9ff;}
 .login-box button:disabled{opacity:.6;cursor:not-allowed;}
 #login-error{color:#ef4444;font-size:.78rem;font-weight:700;margin:10px 0 0;min-height:16px;}
 .btn-logout{background:#475569;color:#fff;border:none;padding:11px 16px;border-radius:10px;font-weight:800;cursor:pointer;font-size:.82rem;}
+
+/* ── Barra de título (tela cheia / recolher / fechar) ── */
+#titlebar{position:sticky;top:0;left:0;right:0;z-index:9999;display:flex;justify-content:space-between;align-items:center;
+  background:#0a1628;padding:0 6px 0 14px;height:34px;box-shadow:0 2px 10px rgba(0,0,0,.35);}
+#titlebar .tb-label{color:#7dd3fc;font-size:.72rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;opacity:.85;}
+#titlebar .tb-btns{display:flex;height:100%;}
+.tb-btn{width:44px;height:34px;border:none;background:transparent;color:#cbd5e1;font-size:14px;line-height:1;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:background .12s ease;}
+.tb-btn:hover{background:rgba(255,255,255,.08);}
+.tb-btn.tb-close:hover{background:#e81123;color:#fff;}
+#tb-minimizado{position:fixed;bottom:14px;right:14px;z-index:9998;background:linear-gradient(135deg,#0c2d55,#1d4ed8);
+  color:#fff;border:none;padding:10px 16px;border-radius:30px;font-weight:800;font-size:.8rem;cursor:pointer;
+  box-shadow:0 6px 20px rgba(0,0,0,.4);display:none;align-items:center;gap:8px;}
+#tb-minimizado.show{display:flex;}
 </style>
 </head>
 <body>
 
+<div id="titlebar">
+  <span class="tb-label">🏗️ Equipe Guerreiros Recebimento — Bloco 8</span>
+  <div class="tb-btns">
+    <button class="tb-btn" id="tb-min" title="Recolher" onclick="tbMinimizar()">—</button>
+    <button class="tb-btn" id="tb-max" title="Tela cheia" onclick="tbAlternarTelaCheia()">▢</button>
+    <button class="tb-btn tb-close" id="tb-close" title="Fechar" onclick="tbFechar()">✕</button>
+  </div>
+</div>
+<button id="tb-minimizado" onclick="tbRestaurar()">🏗️ Guerreiros Recebimento — clique para reabrir</button>
+
+<div id="conteudo-principal">
 <div id="login-screen">
   <div class="login-box">
     <h1>EQUIPE GUERREIROS</h1>
@@ -148,6 +173,7 @@ tbody tr:hover{background:#f0f9ff;}
   </div>
 
   <div id="tabs">
+    <button class="tab-btn" data-tab="paineldia" onclick="switchTab('paineldia')">📅 Painel do Dia</button>
     <button class="tab-btn" data-tab="equipe" onclick="switchTab('equipe')">🛡️ Minha Equipe</button>
     <button class="tab-btn" data-tab="upload" onclick="switchTab('upload')">📤 Upload</button>
     <button class="tab-btn" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Dashboard</button>
@@ -160,7 +186,93 @@ tbody tr:hover{background:#f0f9ff;}
   <div class="panel">
 
     <!-- ================= EQUIPE ================= -->
-    <div id="content-equipe" class="tab-content space-y-6">
+    <!-- ================= PAINEL DO DIA ================= -->
+    <div id="content-paineldia" class="tab-content space-y-6">
+      <div class="card" style="background:linear-gradient(135deg,#0c2d55,#1d4ed8);border:none;color:#fff;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <div>
+            <h3 style="color:#fff;">📅 Painel do Dia — Agenda de Operação</h3>
+            <p style="opacity:.85;margin:4px 0 0;font-size:.8rem;">Visão consolidada do recebimento · veículos, volumes, avarias e tempos</p>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <button class="btn btn-gray" onclick="pdMudarDia(-1)">◀ Dia anterior</button>
+            <button class="btn" style="background:#fff;color:#0c2d55;" onclick="pdIrParaHoje()">📍 Hoje</button>
+            <button class="btn btn-gray" onclick="pdMudarDia(1)">Dia seguinte ▶</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="pdAlternarFiltrosAvancados()">
+          <h3 style="margin:0;">🔍 Filtros Avançados</h3>
+          <span id="pd-filtros-toggle-icon" style="font-weight:800;color:#1d4ed8;">▾ mostrar</span>
+        </div>
+        <div id="pd-filtros-avancados" class="hidden" style="margin-top:14px;">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div><label class="text-xs font-semibold text-gray-500">Data início</label><input type="date" id="pd-f-data-ini" onchange="renderPainelDia()"></div>
+            <div><label class="text-xs font-semibold text-gray-500">Data fim</label><input type="date" id="pd-f-data-fim" onchange="renderPainelDia()"></div>
+            <div><label class="text-xs font-semibold text-gray-500">Linha</label>
+              <select id="pd-f-linha" onchange="renderPainelDia()"><option value="todos">Todas</option><option value="LB">LB</option><option value="LM">LM</option><option value="LV">LV</option></select>
+            </div>
+            <div><label class="text-xs font-semibold text-gray-500">Prioridade</label>
+              <select id="pd-f-priori" onchange="renderPainelDia()"><option value="todos">Todas</option><option value="SIM">Priori SIM</option><option value="NÃO">Priori NÃO</option></select>
+            </div>
+            <div><label class="text-xs font-semibold text-gray-500">Conferente</label><select id="pd-f-conferente" onchange="renderPainelDia()"><option value="todos">Todos</option></select></div>
+            <div><label class="text-xs font-semibold text-gray-500">Fornecedor</label><select id="pd-f-fornecedor" onchange="renderPainelDia()"><option value="todos">Todos</option></select></div>
+            <div><label class="text-xs font-semibold text-gray-500">Transportadora</label><select id="pd-f-transportadora" onchange="renderPainelDia()"><option value="todos">Todas</option></select></div>
+            <div><label class="text-xs font-semibold text-gray-500">Busca (placa/motorista)</label><input type="text" id="pd-f-busca" oninput="renderPainelDia()" placeholder="Digite para buscar..."></div>
+          </div>
+          <div class="flex gap-3 mt-3">
+            <button class="btn btn-gray" onclick="pdLimparFiltros()">Limpar Filtros</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="pd-periodo-label" style="text-align:center;color:#0c2d55;font-weight:800;font-size:.95rem;"></div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="stat stat-brasa"><div class="lbl">🚛 Quantidade de Carros</div><div class="val" id="pd-stat-carros">0</div></div>
+        <div class="stat stat-ouro"><div class="lbl">📦 Cargas Conferidas</div><div class="val" id="pd-stat-cargas">0</div></div>
+        <div class="stat stat-carvao"><div class="lbl">📥 Vol. Agendado</div><div class="val" id="pd-stat-volagenda">0</div></div>
+        <div class="stat stat-verde"><div class="lbl">✅ Vol. Recebido</div><div class="val" id="pd-stat-volrecebido">0</div></div>
+        <div class="stat stat-ouro"><div class="lbl">⚠️ Avarias (qtd)</div><div class="val" id="pd-stat-avarias">0</div></div>
+        <div class="stat stat-brasa"><div class="lbl">💸 Valor Devolução</div><div class="val" id="pd-stat-devolucao">R$ 0</div></div>
+        <div class="stat stat-carvao"><div class="lbl">⏱️ Tempo Médio/Carga</div><div class="val" id="pd-stat-tempomedio">-</div></div>
+        <div class="stat stat-verde"><div class="lbl">🔀 Bitrens Identificados</div><div class="val" id="pd-stat-bitrens">0</div></div>
+      </div>
+      <p style="font-size:.75rem;color:#64748b;text-align:center;margin:-6px 0 0;">
+        ℹ️ Regra de contagem: mesma placa + doca = 1 carro. Mesma placa em docas diferentes = bitrem, contado como 2 carros.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div style="padding:14px 18px;background:#fdf1d8;"><h3 style="margin:0;">🛣️ Por Linha</h3></div>
+          <div class="overflow-x-auto"><table>
+            <thead><tr><th>Linha</th><th class="text-center">Veículos</th><th class="text-center">Cargas</th><th class="text-center">Vol. Agenda</th><th class="text-center">Vol. Recebido</th><th class="text-center">Avarias</th><th class="text-center">Devolução (R$)</th></tr></thead>
+            <tbody id="pd-tabela-linha"></tbody>
+          </table></div>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div style="padding:14px 18px;background:#fdf1d8;"><h3 style="margin:0;">🏭 Por Fornecedor</h3></div>
+          <div class="overflow-x-auto" style="max-height:340px;"><table>
+            <thead><tr><th>Fornecedor</th><th class="text-center">Veículos</th><th class="text-center">Cargas</th><th class="text-center">Vol. Agenda</th><th class="text-center">Vol. Recebido</th><th class="text-center">Avarias</th><th class="text-center">Devolução (R$)</th></tr></thead>
+            <tbody id="pd-tabela-fornecedor"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div style="padding:14px 18px;background:#fdf1d8;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <h3 style="margin:0;">🚚 Veículos do Período (<span id="pd-veiculos-count">0</span>)</h3>
+        </div>
+        <div class="overflow-x-auto" style="max-height:420px;"><table>
+          <thead><tr><th>Placa</th><th>Doca</th><th class="text-center">Tipo</th><th class="text-center">Cargas</th><th>Conferente(s)</th><th>Fornecedor(es)</th><th class="text-center">Vol. Recebido</th><th class="text-center">Avarias</th></tr></thead>
+          <tbody id="pd-tabela-veiculos"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div id="content-equipe" class="tab-content hidden space-y-6">
       <div class="card">
         <h3>⚔️ Recrutar Guerreiro</h3>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -1474,6 +1586,208 @@ function handleImportRecebimento(evt){
   reader.readAsArrayBuffer(file);
 }
 
+/* ══════════════════════════ PAINEL DO DIA ══════════════════════════ */
+function pdHojeISO(){
+  const d=new Date();
+  return d.getFullYear()+'-'+recPad2(d.getMonth()+1)+'-'+recPad2(d.getDate());
+}
+function pdAlternarFiltrosAvancados(){
+  const box=document.getElementById('pd-filtros-avancados');
+  const icon=document.getElementById('pd-filtros-toggle-icon');
+  const abrindo=box.classList.contains('hidden');
+  box.classList.toggle('hidden');
+  icon.textContent = abrindo ? '▴ ocultar' : '▾ mostrar';
+}
+function pdIrParaHoje(){
+  const hoje=pdHojeISO();
+  document.getElementById('pd-f-data-ini').value=hoje;
+  document.getElementById('pd-f-data-fim').value=hoje;
+  renderPainelDia();
+}
+function pdMudarDia(delta){
+  const ini=document.getElementById('pd-f-data-ini').value||pdHojeISO();
+  const d=new Date(ini+'T00:00:00');
+  d.setDate(d.getDate()+delta);
+  const novaData=d.getFullYear()+'-'+recPad2(d.getMonth()+1)+'-'+recPad2(d.getDate());
+  document.getElementById('pd-f-data-ini').value=novaData;
+  document.getElementById('pd-f-data-fim').value=novaData;
+  renderPainelDia();
+}
+function pdLimparFiltros(){
+  document.getElementById('pd-f-linha').value='todos';
+  document.getElementById('pd-f-priori').value='todos';
+  document.getElementById('pd-f-conferente').value='todos';
+  document.getElementById('pd-f-fornecedor').value='todos';
+  document.getElementById('pd-f-transportadora').value='todos';
+  document.getElementById('pd-f-busca').value='';
+  pdIrParaHoje();
+}
+function pdPopularSelect(id, valores){
+  const sel=document.getElementById(id);
+  const atual=sel.value;
+  const primeiraOpcao=sel.options[0];
+  sel.innerHTML='';
+  sel.appendChild(primeiraOpcao);
+  valores.forEach(v=>{
+    const op=document.createElement('option');
+    op.value=v; op.textContent=v;
+    sel.appendChild(op);
+  });
+  if(valores.includes(atual)) sel.value=atual;
+}
+function pdPopularFiltros(){
+  const todos=recGetAllRecords();
+  if(!document.getElementById('pd-f-data-ini').value){
+    const hoje=pdHojeISO();
+    document.getElementById('pd-f-data-ini').value=hoje;
+    document.getElementById('pd-f-data-fim').value=hoje;
+  }
+  const conferentes=[...new Set(todos.map(r=>r.conferente).filter(Boolean))].sort();
+  const fornecedores=[...new Set(todos.map(r=>r.fornecedor).filter(Boolean))].sort();
+  const transportadoras=[...new Set(todos.map(r=>r.transportadora).filter(Boolean))].sort();
+  pdPopularSelect('pd-f-conferente', conferentes);
+  pdPopularSelect('pd-f-fornecedor', fornecedores);
+  pdPopularSelect('pd-f-transportadora', transportadoras);
+}
+/* converte "HH:MM" ou "HH:MM:SS" em minutos desde 00:00 */
+function pdMinutosDoDia(str){
+  if(!str || typeof str!=='string') return null;
+  const m=str.match(/^(\d{1,2}):(\d{2})(:(\d{2}))?/);
+  if(!m) return null;
+  return (+m[1])*60 + (+m[2]) + (m[4]?(+m[4])/60:0);
+}
+function pdChaveVeiculo(r){ return (r.placa||'—')+'||'+(r.doca||'—'); }
+function pdFiltrarRegistros(){
+  const todos=recGetAllRecords();
+  const dIni=document.getElementById('pd-f-data-ini').value;
+  const dFim=document.getElementById('pd-f-data-fim').value;
+  const linha=document.getElementById('pd-f-linha').value;
+  const priori=document.getElementById('pd-f-priori').value;
+  const conferente=document.getElementById('pd-f-conferente').value;
+  const fornecedor=document.getElementById('pd-f-fornecedor').value;
+  const transportadora=document.getElementById('pd-f-transportadora').value;
+  const busca=(document.getElementById('pd-f-busca').value||'').trim().toLowerCase();
+  return todos.filter(r=>{
+    if(dIni && r.data && r.data<dIni) return false;
+    if(dFim && r.data && r.data>dFim) return false;
+    if(linha!=='todos' && r.linha!==linha) return false;
+    if(priori!=='todos' && r.priori!==priori) return false;
+    if(conferente!=='todos' && r.conferente!==conferente) return false;
+    if(fornecedor!=='todos' && r.fornecedor!==fornecedor) return false;
+    if(transportadora!=='todos' && r.transportadora!==transportadora) return false;
+    if(busca){
+      const alvo=((r.placa||'')+' '+(r.motorista||'')).toLowerCase();
+      if(!alvo.includes(busca)) return false;
+    }
+    return true;
+  });
+}
+function pdFormatarNumero(n){ return Number(n||0).toLocaleString('pt-BR'); }
+function pdFormatarMoeda(n){ return 'R$ '+Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function pdFormatarMinutos(min){
+  if(min==null || isNaN(min)) return '-';
+  const h=Math.floor(min/60), m=Math.round(min%60);
+  return `${recPad2(h)}h${recPad2(m)}`;
+}
+function renderPainelDia(){
+  const regs=pdFiltrarRegistros();
+
+  // ── agrupamento por veículo (placa+doca) — regra do bitrem ──
+  const veiculosMap={};
+  regs.forEach(r=>{
+    if(!r.placa) return;
+    const chave=pdChaveVeiculo(r);
+    if(!veiculosMap[chave]) veiculosMap[chave]={placa:r.placa,doca:r.doca,cargas:0,conferentes:new Set(),fornecedores:new Set(),volRecebido:0,avarias:0};
+    const v=veiculosMap[chave];
+    v.cargas++;
+    if(r.conferente) v.conferentes.add(r.conferente);
+    if(r.fornecedor) v.fornecedores.add(r.fornecedor);
+    v.volRecebido += Number(r.volRecebido||0);
+    v.avarias += Number(r.avaria||0);
+  });
+  const veiculos=Object.values(veiculosMap);
+  const placasContagem={};
+  veiculos.forEach(v=>{ placasContagem[v.placa]=(placasContagem[v.placa]||0)+1; });
+  const qtdBitrens=Object.values(placasContagem).filter(n=>n>1).length;
+
+  // ── KPIs gerais ──
+  const volAgenda=regs.reduce((s,r)=>s+Number(r.volAgenda||0),0);
+  const volRecebido=regs.reduce((s,r)=>s+Number(r.volRecebido||0),0);
+  const avarias=regs.reduce((s,r)=>s+Number(r.avaria||0),0);
+  const devolucao=regs.reduce((s,r)=>s+Number(r.valorDevolucao||0),0);
+  const duracoes=regs.map(r=>{
+    const ini=pdMinutosDoDia(r.inicio), term=pdMinutosDoDia(r.termino);
+    if(ini==null||term==null) return null;
+    let d=term-ini; if(d<0) d+=1440;
+    return d;
+  }).filter(v=>v!=null);
+  const tempoMedio=duracoes.length ? duracoes.reduce((a,b)=>a+b,0)/duracoes.length : null;
+
+  document.getElementById('pd-stat-carros').textContent=pdFormatarNumero(veiculos.length);
+  document.getElementById('pd-stat-cargas').textContent=pdFormatarNumero(regs.length);
+  document.getElementById('pd-stat-volagenda').textContent=pdFormatarNumero(volAgenda);
+  document.getElementById('pd-stat-volrecebido').textContent=pdFormatarNumero(volRecebido);
+  document.getElementById('pd-stat-avarias').textContent=pdFormatarNumero(avarias);
+  document.getElementById('pd-stat-devolucao').textContent=pdFormatarMoeda(devolucao);
+  document.getElementById('pd-stat-tempomedio').textContent=pdFormatarMinutos(tempoMedio);
+  document.getElementById('pd-stat-bitrens').textContent=pdFormatarNumero(qtdBitrens);
+
+  const dIni=document.getElementById('pd-f-data-ini').value, dFim=document.getElementById('pd-f-data-fim').value;
+  const lbl=document.getElementById('pd-periodo-label');
+  lbl.textContent = (dIni && dFim && dIni===dFim) ? `📆 Exibindo: ${fmtDataBr(dIni)}` : `📆 Período: ${dIni?fmtDataBr(dIni):'—'} até ${dFim?fmtDataBr(dFim):'—'}`;
+
+  // ── tabela por linha ──
+  const porLinha={};
+  regs.forEach(r=>{
+    const l=r.linha||'—';
+    if(!porLinha[l]) porLinha[l]={cargas:0,volAgenda:0,volRecebido:0,avarias:0,devolucao:0,veiculos:new Set()};
+    const p=porLinha[l];
+    p.cargas++; p.volAgenda+=Number(r.volAgenda||0); p.volRecebido+=Number(r.volRecebido||0);
+    p.avarias+=Number(r.avaria||0); p.devolucao+=Number(r.valorDevolucao||0);
+    p.veiculos.add(pdChaveVeiculo(r));
+  });
+  const corpoLinha=document.getElementById('pd-tabela-linha');
+  corpoLinha.innerHTML = Object.keys(porLinha).sort().map(l=>{
+    const p=porLinha[l];
+    return `<tr><td><strong>${l}</strong></td><td class="text-center">${p.veiculos.size}</td><td class="text-center">${p.cargas}</td><td class="text-center">${pdFormatarNumero(p.volAgenda)}</td><td class="text-center">${pdFormatarNumero(p.volRecebido)}</td><td class="text-center">${pdFormatarNumero(p.avarias)}</td><td class="text-center">${pdFormatarMoeda(p.devolucao)}</td></tr>`;
+  }).join('') || '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:16px;">Sem registros no período/filtros selecionados</td></tr>';
+
+  // ── tabela por fornecedor ──
+  const porFornecedor={};
+  regs.forEach(r=>{
+    const f=r.fornecedor||'—';
+    if(!porFornecedor[f]) porFornecedor[f]={cargas:0,volAgenda:0,volRecebido:0,avarias:0,devolucao:0,veiculos:new Set()};
+    const p=porFornecedor[f];
+    p.cargas++; p.volAgenda+=Number(r.volAgenda||0); p.volRecebido+=Number(r.volRecebido||0);
+    p.avarias+=Number(r.avaria||0); p.devolucao+=Number(r.valorDevolucao||0);
+    p.veiculos.add(pdChaveVeiculo(r));
+  });
+  const corpoFornecedor=document.getElementById('pd-tabela-fornecedor');
+  const fornecedoresOrdenados=Object.keys(porFornecedor).sort((a,b)=>porFornecedor[b].volRecebido-porFornecedor[a].volRecebido);
+  corpoFornecedor.innerHTML = fornecedoresOrdenados.map(f=>{
+    const p=porFornecedor[f];
+    return `<tr><td>${f}</td><td class="text-center">${p.veiculos.size}</td><td class="text-center">${p.cargas}</td><td class="text-center">${pdFormatarNumero(p.volAgenda)}</td><td class="text-center">${pdFormatarNumero(p.volRecebido)}</td><td class="text-center">${pdFormatarNumero(p.avarias)}</td><td class="text-center">${pdFormatarMoeda(p.devolucao)}</td></tr>`;
+  }).join('') || '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:16px;">Sem registros no período/filtros selecionados</td></tr>';
+
+  // ── tabela de veículos (com marcação de bitrem) ──
+  const corpoVeiculos=document.getElementById('pd-tabela-veiculos');
+  const veiculosOrdenados=[...veiculos].sort((a,b)=>(a.placa||'').localeCompare(b.placa||'')||(a.doca-b.doca));
+  document.getElementById('pd-veiculos-count').textContent=veiculosOrdenados.length;
+  corpoVeiculos.innerHTML = veiculosOrdenados.map(v=>{
+    const ehBitrem = placasContagem[v.placa]>1;
+    return `<tr>
+      <td><strong>${v.placa}</strong></td>
+      <td class="text-center">${v.doca||'-'}</td>
+      <td class="text-center">${ehBitrem?'<span class="badge" style="background:#fef3c7;color:#92400e;">🔀 Bitrem</span>':'<span class="badge" style="background:#dcfce7;color:#166534;">🚛 Simples</span>'}</td>
+      <td class="text-center">${v.cargas}</td>
+      <td>${[...v.conferentes].join(', ')||'-'}</td>
+      <td>${[...v.fornecedores].join(', ')||'-'}</td>
+      <td class="text-center">${pdFormatarNumero(v.volRecebido)}</td>
+      <td class="text-center">${pdFormatarNumero(v.avarias)}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:16px;">Sem veículos no período/filtros selecionados</td></tr>';
+}
+
 /* ---------------- inicialização ---------------- */
 function initRecebimento(){
   recBuildSeedMap();
@@ -1492,6 +1806,7 @@ function switchTab(tab){
   if(tab==='ranking' && (currentCicloView||ciclosHistorico[0])) renderRanking();
   if(tab==='historico') renderHistorico();
   if(tab==='recebimento') renderRecebimento(recPageAtual);
+  if(tab==='paineldia'){ pdPopularFiltros(); renderPainelDia(); }
 }
 function refreshAll(){
   if(currentCicloView||ciclosHistorico[0]){ renderDashboard(); renderRanking(); alert('✅ Atualizado!'); }
@@ -1504,7 +1819,7 @@ renderEmployees();
 autoSetStatus();
 document.getElementById('brand-logo-img').src=LOGO_B64;
 if(ciclosHistorico[0]) currentCicloView=ciclosHistorico[0];
-switchTab('equipe');
+switchTab('paineldia');
 </script>
 
 <!-- ══════════════════════════════════════════════
@@ -1639,6 +1954,64 @@ switchTab('equipe');
 
   // Função global de logout (chamada pelo botão "Sair")
   window.fbLogout = () => signOut(auth);
+</script>
+
+</div><!-- /#conteudo-principal -->
+
+<script>
+/* ---------------- barra de título: tela cheia / recolher / fechar ---------------- */
+function tbEmTelaCheia(){
+  return !!(document.fullscreenElement||document.webkitFullscreenElement);
+}
+function tbAtualizarIconeMax(){
+  const btn=document.getElementById('tb-max');
+  if(!btn) return;
+  btn.textContent = tbEmTelaCheia() ? '❐' : '▢';
+  btn.title = tbEmTelaCheia() ? 'Restaurar' : 'Tela cheia';
+}
+async function tbEntrarTelaCheia(){
+  const el=document.documentElement;
+  try{
+    if(el.requestFullscreen) await el.requestFullscreen();
+    else if(el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+  }catch(e){ /* navegador pode bloquear sem gesto do usuário — ok, o botão ▢ resolve manualmente */ }
+}
+async function tbAlternarTelaCheia(){
+  try{
+    if(tbEmTelaCheia()){
+      if(document.exitFullscreen) await document.exitFullscreen();
+      else if(document.webkitExitFullscreen) await document.webkitExitFullscreen();
+    } else {
+      await tbEntrarTelaCheia();
+    }
+  }catch(e){ console.warn('Tela cheia não disponível:', e); }
+}
+document.addEventListener('fullscreenchange', tbAtualizarIconeMax);
+document.addEventListener('webkitfullscreenchange', tbAtualizarIconeMax);
+
+function tbMinimizar(){
+  document.getElementById('conteudo-principal').style.display='none';
+  document.getElementById('titlebar').style.display='none';
+  document.getElementById('tb-minimizado').classList.add('show');
+}
+function tbRestaurar(){
+  document.getElementById('conteudo-principal').style.display='';
+  document.getElementById('titlebar').style.display='';
+  document.getElementById('tb-minimizado').classList.remove('show');
+}
+function tbFechar(){
+  if(!confirm('Deseja fechar a ferramenta?')) return;
+  window.close();
+  // Se o navegador bloquear o fechamento (comum quando a aba não foi aberta por script),
+  // avisamos o usuário para fechar manualmente.
+  setTimeout(()=>{
+    alert('Por segurança, o navegador não permite fechar a aba automaticamente.\nPressione Ctrl+W (ou Cmd+W no Mac) para fechar, ou feche a aba manualmente.');
+  },350);
+}
+// Tenta abrir automaticamente em tela cheia assim que o usuário interage (login),
+// pois os navegadores exigem um gesto do usuário para liberar a tela cheia.
+document.getElementById('login-form')?.addEventListener('submit', ()=>{ tbEntrarTelaCheia(); }, {capture:true});
+document.getElementById('tb-close')?.setAttribute('title','Fechar (Ctrl+W se o navegador bloquear)');
 </script>
 </body>
 </html>
