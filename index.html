@@ -4,6 +4,39 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Equipe Guerreiros Recebimento - Bloco 8</title>
+<script>
+/* Capturador de erros visível — mostra na própria tela qualquer erro de
+   JavaScript, para diagnosticar travamentos sem precisar abrir o F12/console. */
+(function(){
+  window.__errosFerramenta = window.__errosFerramenta || [];
+  function registrar(msg){
+    window.__errosFerramenta.push(msg);
+    exibir();
+  }
+  function exibir(){
+    if(!document.body) return;
+    let box = document.getElementById('erro-ferramenta-box');
+    if(!box){
+      box = document.createElement('div');
+      box.id = 'erro-ferramenta-box';
+      box.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:999999;background:#b91c1c;color:#fff;padding:10px 14px;font:12px/1.5 monospace;max-height:38vh;overflow:auto;box-shadow:0 2px 8px rgba(0,0,0,.4);';
+      document.body.appendChild(box);
+    }
+    box.innerHTML = '<b>⚠️ Erro detectado na ferramenta — tire um print desta faixa e envie:</b><br>' +
+      window.__errosFerramenta.map(function(m){ return '• '+m; }).join('<br>');
+  }
+  window.addEventListener('error', function(e){
+    registrar((e.message||'Erro desconhecido') + ' — linha ' + (e.lineno||'?') + ', coluna ' + (e.colno||'?'));
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    const r = e.reason;
+    registrar('Promise rejeitada: ' + (r && r.message ? r.message : String(r)));
+  });
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', exibir);
+  } else { exibir(); }
+})();
+</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
