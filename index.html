@@ -32,9 +32,6 @@
     const r = e.reason;
     registrar('Promise rejeitada: ' + (r && r.message ? r.message : String(r)));
   });
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded', exibir);
-  } else { exibir(); }
 })();
 </script>
 <script src="https://cdn.tailwindcss.com"></script>
