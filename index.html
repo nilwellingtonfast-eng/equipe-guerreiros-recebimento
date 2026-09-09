@@ -1392,7 +1392,8 @@ function recCampoHtml(key,label,tipo,valor){
   }
   const inputType=tipo==='numero'?'number':(tipo==='data'?'date':(tipo==='hora'?'time':'text'));
   const step=tipo==='numero-decimal'?'step="0.01"':'';
-  return `<div class="rec-field"><label>${label}</label><input type="${inputType==='numero-decimal'?'number':inputType}" ${step} id="rf-${key}" value="${String(v).replace(/"/g,'&quot;')}"></div>`;
+  const gatilho=(key==='inicio'||key==='termino'||key==='volRecebido')?' oninput="recAtualizarTemposModal()" onchange="recAtualizarTemposModal()"':'';
+  return `<div class="rec-field"><label>${label}</label><input type="${inputType==='numero-decimal'?'number':inputType}" ${step} id="rf-${key}" value="${String(v).replace(/"/g,'&quot;')}"${gatilho}></div>`;
 }
 function abrirModalRecebimento(id){
   recModalEditId=id||null;
@@ -1451,7 +1452,7 @@ function recCalcularPorCargaProd(inicio,termino,volRecebido){
   if(diffMin<0) diffMin+=24*60; // atravessou a meia-noite
   const diffSeg=diffMin*60;
   const porCarga=recFormatarDuracaoSegundos(diffSeg);
-  const vol=Number(volRecebido)||0;
+  const vol=Number(String(volRecebido||'').replace(',','.'))||0;
   const porProd=vol>0?recFormatarDuracaoSegundos(diffSeg/vol):'';
   return {porCarga,porProd};
 }
@@ -1471,7 +1472,7 @@ function salvarRecebimentoForm(){
     if(!el) return;
     let v=el.value;
     if(['doca','carga','volAgenda','volRecebido','avaria','falta','sobra','valorDevolucao'].includes(k)){
-      v=v===''?0:Number(v);
+      v=v===''?0:(Number(String(v).replace(',','.'))||0);
     }
     dados[k]=v;
   });
