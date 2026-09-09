@@ -1326,6 +1326,17 @@ window.recApplyRemote=function(id,dados){
   recSaveLocalOverrides();
   if(currentTab==='recebimento'){ renderRecebimento(recPageAtual,true); }
 };
+/* Versão em lote: recebe vários registros de uma vez (ex.: sincronização
+   inicial com centenas/milhares de documentos) e só grava no localStorage
+   e redesenha a tela UMA vez no final, em vez de uma vez por documento —
+   evita o navegador travar ("Página sem resposta") em bases grandes. */
+window.recApplyRemoteBatch=function(loteIdParaDados){
+  Object.keys(loteIdParaDados).forEach(id=>{
+    recOverrides[id]=loteIdParaDados[id];
+  });
+  recSaveLocalOverrides();
+  if(currentTab==='recebimento'){ renderRecebimento(recPageAtual,true); }
+};
 
 /* ---------------- filtros ---------------- */
 function recFiltrar(lista){
@@ -2134,11 +2145,20 @@ switchTab('paineldia');
       if(snap.exists() && window.fbApplyRemoteData) window.fbApplyRemoteData('ciclos', snap.data());
     }, (err) => console.error('Erro sync ciclos:', err));
     onSnapshot(colRecebimento, (snap) => {
+      // Junta todas as mudanças recebidas de uma vez (pode ser milhares no
+      // primeiro carregamento) num único lote, em vez de salvar/renderizar
+      // uma vez por documento — isso é o que travava o navegador.
+      const lote = {};
+      let houveMudanca = false;
       snap.docChanges().forEach(change => {
-        if((change.type==='added'||change.type==='modified') && window.recApplyRemote){
-          window.recApplyRemote(change.doc.id, change.doc.data());
+        if(change.type==='added'||change.type==='modified'){
+          lote[change.doc.id] = change.doc.data();
+          houveMudanca = true;
         }
       });
+      if(houveMudanca && window.recApplyRemoteBatch){
+        window.recApplyRemoteBatch(lote);
+      }
     }, (err) => console.error('Erro sync recebimento:', err));
   }
 
@@ -2187,14 +2207,18 @@ switchTab('paineldia');
     loginBtn.disabled = true;
     loginBtn.textContent = 'Entrando...';
     try {
-      await signInWithEmailAndPassword(auth, email, senha);
+      const timeout = new Promise((_, rej) =>
+        setTimeout(() => rej({ code: 'auth/timeout' }), 10000)
+      );
+      await Promise.race([signInWithEmailAndPassword(auth, email, senha), timeout]);
     } catch (err) {
       const msgs = {
         'auth/invalid-email': 'E-mail inválido.',
         'auth/user-not-found': 'Usuário não encontrado.',
         'auth/wrong-password': 'Senha incorreta.',
         'auth/invalid-credential': 'E-mail ou senha inválidos.',
-        'auth/too-many-requests': 'Muitas tentativas. Tente novamente mais tarde.'
+        'auth/too-many-requests': 'Muitas tentativas. Tente novamente mais tarde.',
+        'auth/timeout': 'Não foi possível conectar ao servidor de login (rede bloqueada ou lenta). Se estiver na pré-visualização do Claude, abra o arquivo direto no navegador e tente de novo.'
       };
       loginError.textContent = msgs[err.code] || 'Erro ao entrar. Verifique os dados.';
     } finally {
