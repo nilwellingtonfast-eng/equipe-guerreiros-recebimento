@@ -16,7 +16,7 @@ body{font-family:'Inter',sans-serif;background:linear-gradient(160deg,#0a1628 0%
 ::-webkit-scrollbar{width:8px;height:8px;}
 ::-webkit-scrollbar-track{background:#0f2847;}
 ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--ouro),var(--brasa2));border-radius:8px;}
-#app{width:100%;max-width:none;margin:0 auto;padding:18px;}
+#app{max-width:1800px;margin:0 auto;padding:18px;}
 .header-wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px;}
 .brand{display:flex;align-items:center;gap:14px;}
 .brand-icon{width:52px;height:52px;border-radius:50%;object-fit:cover;filter:drop-shadow(0 0 10px rgba(56,189,248,0.6));border:2px solid #38bdf8;}
@@ -43,7 +43,7 @@ body{font-family:'Inter',sans-serif;background:linear-gradient(160deg,#0a1628 0%
 .stat-clicavel{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;}
 .stat-clicavel:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.32);}
 .stat-clicavel:active{transform:translateY(-1px);}
-input[type=text],input[type=date],input[type=number],input[type=time],input[type=email],input[type=password],input[type=tel],input[type=search],select{border:1.5px solid #bfdbfe;border-radius:8px;padding:9px 11px;font-size:.87rem;width:100%;background:#fff;}
+input[type=text],input[type=date],select{border:1.5px solid #bfdbfe;border-radius:8px;padding:9px 11px;font-size:.87rem;width:100%;}
 input:focus,select:focus{outline:none;border-color:var(--ouro);box-shadow:0 0 0 3px rgba(14,165,233,.15);}
 .btn{padding:9px 16px;border-radius:9px;font-weight:800;border:none;cursor:pointer;font-size:.82rem;}
 .btn:active{transform:scale(.97);}
@@ -84,9 +84,8 @@ tbody tr:hover{background:#f0f9ff;}
 .rec-modal-body{padding:20px 22px;}
 .rec-field-group{margin-bottom:16px;}
 .rec-field-group h4{margin:0 0 8px;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#1d4ed8;}
-.rec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 10px;}
-.rec-field{min-width:0;}
-.rec-field label{display:block;font-size:.68rem;font-weight:700;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;}
+.rec-field label{display:block;font-size:.68rem;font-weight:700;color:#64748b;margin-bottom:3px;text-transform:uppercase;letter-spacing:.03em;}
 .rec-modal-foot{padding:14px 22px;border-top:1px solid #dbeafe;display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:var(--pergaminho);border-radius:0 0 16px 16px;}
 #rec-toast-wrap{position:fixed;bottom:18px;right:18px;z-index:9500;display:flex;flex-direction:column;gap:8px;align-items:flex-end;}
 .rec-toast{background:#0c2d55;color:#fff;padding:10px 16px;border-radius:10px;font-weight:700;font-size:.8rem;box-shadow:0 8px 24px rgba(0,0,0,.35);display:flex;align-items:center;gap:8px;animation:toastIn .25s ease-out;}
@@ -490,6 +489,7 @@ tbody tr:hover{background:#f0f9ff;}
               <th>Categoria</th><th class="text-center">Vol. Agenda</th><th class="text-center">Vol. Recebido</th><th class="text-center">Priori</th>
               <th>Início</th><th>Término</th><th>Por Carga</th><th>Por Prod</th><th class="text-center">Avaria</th><th>Motivo DV</th>
               <th class="text-center">Falta</th><th class="text-center">Sobra</th><th class="text-center">Valor DV</th><th>Transportadora</th><th>Motorista</th>
+              <th>Observações</th>
               <th class="text-center">Ações</th>
             </tr></thead>
             <tbody id="rec-table-body"></tbody>
@@ -1223,7 +1223,7 @@ function exportToExcel(){
    ══════════════════════════════════════════════ */
 const REC_CAMPOS=['data','placa','doca','carga','hora','conferente','fornecedor','linha','categoria',
   'volAgenda','volRecebido','priori','inicio','termino','porCarga','porProd','avaria','motivoDv',
-  'falta','sobra','valorDevolucao','transportadora','motorista'];
+  'falta','sobra','valorDevolucao','transportadora','motorista','observacoes'];
 let recSeedMap={};      // id -> registro base (vindo do SEED_RECEBIMENTO)
 let recOverrides={};    // id -> registro (edições/exclusões/novos) vindos do Firestore/local
 let recPageAtual=1;
@@ -1293,10 +1293,6 @@ function recAutosave(id,dadosOuNull){
 /* Chamado pelo Firebase quando chega alteração de outro usuário */
 window.recApplyRemote=function(id,dados){
   recOverrides[id]=dados;
-};
-/* Chamado 1x ao final de cada leva de mudanças recebidas da nuvem (evita travar
-   o navegador salvando/redesenhando a cada documento individual). */
-window.recApplyRemoteFlush=function(){
   recSaveLocalOverrides();
   if(currentTab==='recebimento'){ renderRecebimento(recPageAtual,true); }
 };
@@ -1358,12 +1354,13 @@ function renderRecebimento(pagina,semScroll){
       <td class="text-center">${fmtNum(r.avaria)}</td><td>${r.motivoDv||'-'}</td>
       <td class="text-center">${fmtNum(r.falta)}</td><td class="text-center">${fmtNum(r.sobra)}</td><td class="text-center">${fmtMoeda(r.valorDevolucao)}</td>
       <td>${r.transportadora||'-'}</td><td>${r.motorista||'-'}</td>
+      <td>${r.observacoes||'-'}</td>
       <td class="text-center">
         <button onclick="abrirModalRecebimento('${r.id}')" class="btn-blue btn" style="padding:5px 9px;">✏️</button>
         <button onclick="excluirRecebimento('${r.id}')" class="btn-red btn" style="padding:5px 9px;">🗑️</button>
       </td>
     </tr>`;
-  }).join('') || `<tr><td colspan="23" class="text-center text-gray-400 py-6">Nenhum registro encontrado com os filtros atuais.</td></tr>`;
+  }).join('') || `<tr><td colspan="25" class="text-center text-gray-400 py-6">Nenhum registro encontrado com os filtros atuais.</td></tr>`;
 
   const pagWrap=document.getElementById('rec-pagination');
   let pagHtml='';
@@ -1386,6 +1383,12 @@ function recCampoHtml(key,label,tipo,valor){
   if(tipo==='select-priori'){
     return `<div class="rec-field"><label>${label}</label><select id="rf-${key}">
       <option value="">-</option><option value="SIM" ${v==='SIM'?'selected':''}>SIM</option><option value="NÃO" ${v==='NÃO'?'selected':''}>NÃO</option></select></div>`;
+  }
+  if(tipo==='texto-calculado'){
+    return `<div class="rec-field"><label>${label}</label><input type="text" id="rf-${key}" value="${String(v).replace(/"/g,'&quot;')}" readonly style="background:#f1f5f9;color:#64748b;cursor:not-allowed;"></div>`;
+  }
+  if(tipo==='textarea'){
+    return `<div class="rec-field" style="grid-column:1/-1;"><label>${label}</label><textarea id="rf-${key}" rows="2" style="width:100%;">${String(v).replace(/</g,'&lt;')}</textarea></div>`;
   }
   const inputType=tipo==='numero'?'number':(tipo==='data'?'date':(tipo==='hora'?'time':'text'));
   const step=tipo==='numero-decimal'?'step="0.01"':'';
@@ -1411,10 +1414,11 @@ function abrirModalRecebimento(id){
           ${g('conferente','Conferente','texto')}${g('fornecedor','Fornecedor','texto')}${g('linha','Linha','select-linha')}${g('categoria','Categoria','texto')}${g('priori','Prioridade','select-priori')}
         </div></div>
         <div class="rec-field-group"><h4>Volumes e Tempos</h4><div class="rec-grid">
-          ${g('volAgenda','Vol. Agenda','numero')}${g('volRecebido','Vol. Recebido','numero')}${g('inicio','Início','hora')}${g('termino','Término','hora')}${g('porCarga','Por Carga','texto')}${g('porProd','Por Prod','texto')}
+          ${g('volAgenda','Vol. Agenda','numero')}${g('volRecebido','Vol. Recebido','numero')}${g('inicio','Início','hora')}${g('termino','Término','hora')}${g('porCarga','Por Carga (calculado)','texto-calculado')}${g('porProd','Por Prod (calculado)','texto-calculado')}
         </div></div>
         <div class="rec-field-group"><h4>Avarias e Devoluções</h4><div class="rec-grid">
           ${g('avaria','Avaria','numero')}${g('motivoDv','Motivo DV','texto')}${g('falta','Falta','numero')}${g('sobra','Sobra','numero')}${g('valorDevolucao','Valor Devolução (R$)','numero-decimal')}
+          ${g('observacoes','Observações (falta / sobra / avaria)','textarea')}
         </div></div>
         <div class="rec-field-group"><h4>Transporte</h4><div class="rec-grid">
           ${g('transportadora','Transportadora','texto')}${g('motorista','Motorista','texto')}
@@ -1427,6 +1431,37 @@ function abrirModalRecebimento(id){
     </div>
   </div>`;
   document.getElementById('rec-modal-root').innerHTML=html;
+  ['rf-inicio','rf-termino','rf-volRecebido'].forEach(elId=>{
+    const el=document.getElementById(elId);
+    if(el) el.addEventListener('input',recAtualizarTemposModal);
+  });
+  recAtualizarTemposModal();
+}
+/* calcula Por Carga (término - início) e Por Prod (Por Carga / Vol. Recebido) automaticamente */
+function recFormatarDuracaoSegundos(seg){
+  if(seg==null || isNaN(seg) || seg<0) return '';
+  seg=Math.round(seg);
+  const h=Math.floor(seg/3600), m=Math.floor((seg%3600)/60), s=seg%60;
+  return recPad2(h)+':'+recPad2(m)+':'+recPad2(s);
+}
+function recCalcularPorCargaProd(inicio,termino,volRecebido){
+  const iniMin=pdMinutosDoDia(inicio), fimMin=pdMinutosDoDia(termino);
+  if(iniMin==null || fimMin==null) return {porCarga:'',porProd:''};
+  let diffMin=fimMin-iniMin;
+  if(diffMin<0) diffMin+=24*60; // atravessou a meia-noite
+  const diffSeg=diffMin*60;
+  const porCarga=recFormatarDuracaoSegundos(diffSeg);
+  const vol=Number(volRecebido)||0;
+  const porProd=vol>0?recFormatarDuracaoSegundos(diffSeg/vol):'';
+  return {porCarga,porProd};
+}
+function recAtualizarTemposModal(){
+  const inicio=document.getElementById('rf-inicio')?.value||'';
+  const termino=document.getElementById('rf-termino')?.value||'';
+  const vol=document.getElementById('rf-volRecebido')?.value||'';
+  const calc=recCalcularPorCargaProd(inicio,termino,vol);
+  const elC=document.getElementById('rf-porCarga'); if(elC) elC.value=calc.porCarga;
+  const elP=document.getElementById('rf-porProd'); if(elP) elP.value=calc.porProd;
 }
 function fecharModalRecebimento(){ document.getElementById('rec-modal-root').innerHTML=''; recModalEditId=null; }
 function salvarRecebimentoForm(){
@@ -1440,6 +1475,8 @@ function salvarRecebimentoForm(){
     }
     dados[k]=v;
   });
+  const calc=recCalcularPorCargaProd(dados.inicio,dados.termino,dados.volRecebido);
+  if(calc.porCarga){ dados.porCarga=calc.porCarga; dados.porProd=calc.porProd; }
   if(!dados.placa && !dados.conferente){ alert('Preencha ao menos Placa ou Conferente.'); return; }
   const id=recModalEditId||recNovoId();
   recAutosave(id,dados);
@@ -1462,7 +1499,7 @@ function exportarRecebimentoExcel(){
     'DATA':fmtDataBr(r.data),'PLACA':r.placa,'DOCA':r.doca,'CARGA':r.carga,'HORA':r.hora,'CONFERENTE':r.conferente,
     'FORNECEDOR':r.fornecedor,'LINHA':r.linha,'CATEGORIAS':r.categoria,'VOLUME AGENDA':r.volAgenda,'VOLUME RECEBIDO':r.volRecebido,
     'PRIORI':r.priori,'INÍCIO':r.inicio,'TÉRMINO':r.termino,'POR CARGA':r.porCarga,'POR PROD':r.porProd,'AVARIA':r.avaria,
-    'MOTIVO DV':r.motivoDv,'FALTA':r.falta,'SOBRA':r.sobra,'VALOR DE DEVOLUÇÃO':r.valorDevolucao,'TRANSPORTADORA':r.transportadora,'MOTORISTA':r.motorista
+    'MOTIVO DV':r.motivoDv,'FALTA':r.falta,'SOBRA':r.sobra,'VALOR DE DEVOLUÇÃO':r.valorDevolucao,'TRANSPORTADORA':r.transportadora,'MOTORISTA':r.motorista,'OBSERVAÇÕES':r.observacoes
   }));
   const ws=XLSX.utils.json_to_sheet(linhas);
   const wb=XLSX.utils.book_new();
@@ -1517,8 +1554,8 @@ const REC_MAPA_CABECALHO={
   'POR CARGA':'porCarga','POR PROD':'porProd',
   'AVARIA':'avaria','MOTIVO DV':'motivoDv','MOTIVO DEVOLUCAO':'motivoDv','MOTIVO DA DEVOLUCAO':'motivoDv',
   'FALTA':'falta','SOBRA':'sobra',
-  'VALOR DE DEVOLUCAO':'valorDevolucao','VALOR DEVOLUCAO':'valorDevolucao','VALOR DA DEVOLUCAO':'valorDevolucao',
-  'TRANSPORTADORA':'transportadora','MOTORISTA':'motorista'
+  'VALOR DE DEVOLUCAO':'valorDevolucao','VALOR DEVOLUCAO':'valorDevolucao','VALOR DA DEVOLUCAO':'valorDevolucao','VALOR DV':'valorDevolucao',
+  'TRANSPORTADORA':'transportadora','MOTORISTA':'motorista','OBSERVACOES':'observacoes','OBSERVACAO':'observacoes'
 };
 const REC_CAMPOS_NUMERICOS=['doca','carga','volAgenda','volRecebido','avaria','falta','sobra','valorDevolucao'];
 
@@ -2021,10 +2058,7 @@ switchTab('paineldia');
     doc,
     setDoc,
     onSnapshot,
-    collection,
-    getDocs,
-    deleteDoc,
-    writeBatch
+    collection
   } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
   // ⚠️ SUBSTITUA pelos dados do SEU projeto Firebase
@@ -2069,15 +2103,11 @@ switchTab('paineldia');
       if(snap.exists() && window.fbApplyRemoteData) window.fbApplyRemoteData('ciclos', snap.data());
     }, (err) => console.error('Erro sync ciclos:', err));
     onSnapshot(colRecebimento, (snap) => {
-      let houveMudanca=false;
       snap.docChanges().forEach(change => {
         if((change.type==='added'||change.type==='modified') && window.recApplyRemote){
           window.recApplyRemote(change.doc.id, change.doc.data());
-          houveMudanca=true;
         }
       });
-      // salva/redesenha só 1 vez por leva de mudanças, mesmo que venham milhares de documentos juntos
-      if(houveMudanca && window.recApplyRemoteFlush) window.recApplyRemoteFlush();
     }, (err) => console.error('Erro sync recebimento:', err));
   }
 
@@ -2144,37 +2174,6 @@ switchTab('paineldia');
 
   // Função global de logout (chamada pelo botão "Sair")
   window.fbLogout = () => signOut(auth);
-
-  /* ══════════════════════════════════════════════
-     LIMPEZA — SOMENTE Controle de Recebimento
-     Apaga todos os documentos da coleção 'recebimento_registros'
-     (nuvem) e o cache local correspondente. NÃO toca em
-     employees / database / ciclos (outras abas).
-     ══════════════════════════════════════════════ */
-  window.fbLimparNuvemRecebimento = async function(){
-    try{
-      console.log('Buscando documentos de recebimento_registros...');
-      const snap = await getDocs(colRecebimento);
-      console.log('Encontrados', snap.size, 'documentos. Apagando em lotes...');
-      const docs = snap.docs;
-      const TAM_LOTE = 450; // limite do Firestore é 500 operações por batch
-      for(let i=0; i<docs.length; i+=TAM_LOTE){
-        const lote = docs.slice(i, i+TAM_LOTE);
-        const batch = writeBatch(db);
-        lote.forEach(d => batch.delete(d.ref));
-        await batch.commit();
-        console.log('Apagados', Math.min(i+TAM_LOTE, docs.length), '/', docs.length);
-      }
-      // limpa só o cache local do Controle de Recebimento (não mexe em employees/database/ciclos)
-      localStorage.removeItem('guerreiros_recebimento_overrides');
-      console.log('✅ Concluído! Controle de Recebimento limpo na nuvem e localmente. Recarregando...');
-      alert('✅ Controle de Recebimento limpo com sucesso (nuvem + local). A página vai recarregar agora.');
-      location.reload();
-    }catch(err){
-      console.error('Erro ao limpar recebimento_registros:', err);
-      alert('❌ Erro ao limpar: ' + (err.message||err));
-    }
-  };
 </script>
 
 </div><!-- /#conteudo-principal -->
