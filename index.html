@@ -1293,6 +1293,10 @@ function recAutosave(id,dadosOuNull){
 /* Chamado pelo Firebase quando chega alteração de outro usuário */
 window.recApplyRemote=function(id,dados){
   recOverrides[id]=dados;
+};
+/* Chamado 1x ao final de cada leva de mudanças recebidas da nuvem (evita travar
+   o navegador salvando/redesenhando a cada documento individual). */
+window.recApplyRemoteFlush=function(){
   recSaveLocalOverrides();
   if(currentTab==='recebimento'){ renderRecebimento(recPageAtual,true); }
 };
@@ -2017,7 +2021,10 @@ switchTab('paineldia');
     doc,
     setDoc,
     onSnapshot,
-    collection
+    collection,
+    getDocs,
+    deleteDoc,
+    writeBatch
   } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
   // ⚠️ SUBSTITUA pelos dados do SEU projeto Firebase
@@ -2062,11 +2069,15 @@ switchTab('paineldia');
       if(snap.exists() && window.fbApplyRemoteData) window.fbApplyRemoteData('ciclos', snap.data());
     }, (err) => console.error('Erro sync ciclos:', err));
     onSnapshot(colRecebimento, (snap) => {
+      let houveMudanca=false;
       snap.docChanges().forEach(change => {
         if((change.type==='added'||change.type==='modified') && window.recApplyRemote){
           window.recApplyRemote(change.doc.id, change.doc.data());
+          houveMudanca=true;
         }
       });
+      // salva/redesenha só 1 vez por leva de mudanças, mesmo que venham milhares de documentos juntos
+      if(houveMudanca && window.recApplyRemoteFlush) window.recApplyRemoteFlush();
     }, (err) => console.error('Erro sync recebimento:', err));
   }
 
@@ -2133,6 +2144,37 @@ switchTab('paineldia');
 
   // Função global de logout (chamada pelo botão "Sair")
   window.fbLogout = () => signOut(auth);
+
+  /* ══════════════════════════════════════════════
+     LIMPEZA — SOMENTE Controle de Recebimento
+     Apaga todos os documentos da coleção 'recebimento_registros'
+     (nuvem) e o cache local correspondente. NÃO toca em
+     employees / database / ciclos (outras abas).
+     ══════════════════════════════════════════════ */
+  window.fbLimparNuvemRecebimento = async function(){
+    try{
+      console.log('Buscando documentos de recebimento_registros...');
+      const snap = await getDocs(colRecebimento);
+      console.log('Encontrados', snap.size, 'documentos. Apagando em lotes...');
+      const docs = snap.docs;
+      const TAM_LOTE = 450; // limite do Firestore é 500 operações por batch
+      for(let i=0; i<docs.length; i+=TAM_LOTE){
+        const lote = docs.slice(i, i+TAM_LOTE);
+        const batch = writeBatch(db);
+        lote.forEach(d => batch.delete(d.ref));
+        await batch.commit();
+        console.log('Apagados', Math.min(i+TAM_LOTE, docs.length), '/', docs.length);
+      }
+      // limpa só o cache local do Controle de Recebimento (não mexe em employees/database/ciclos)
+      localStorage.removeItem('guerreiros_recebimento_overrides');
+      console.log('✅ Concluído! Controle de Recebimento limpo na nuvem e localmente. Recarregando...');
+      alert('✅ Controle de Recebimento limpo com sucesso (nuvem + local). A página vai recarregar agora.');
+      location.reload();
+    }catch(err){
+      console.error('Erro ao limpar recebimento_registros:', err);
+      alert('❌ Erro ao limpar: ' + (err.message||err));
+    }
+  };
 </script>
 
 </div><!-- /#conteudo-principal -->
