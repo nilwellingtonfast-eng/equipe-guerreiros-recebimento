@@ -46,7 +46,7 @@ body{font-family:'Inter',sans-serif;background:linear-gradient(160deg,#0a1628 0%
 ::-webkit-scrollbar{width:8px;height:8px;}
 ::-webkit-scrollbar-track{background:#0f2847;}
 ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--ouro),var(--brasa2));border-radius:8px;}
-#app{max-width:1800px;margin:0 auto;padding:18px;}
+#app{max-width:100%;margin:0 auto;padding:18px;}
 .header-wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px;}
 .brand{display:flex;align-items:center;gap:14px;}
 .brand-icon{width:52px;height:52px;border-radius:50%;object-fit:cover;filter:drop-shadow(0 0 10px rgba(56,189,248,0.6));border:2px solid #38bdf8;}
@@ -128,8 +128,15 @@ tbody tr:hover{background:#f0f9ff;}
 .rec-page-btn.active{background:linear-gradient(135deg,#1d4ed8,#0ea5e9);color:#fff;border-color:transparent;}
 .rec-page-btn:disabled{opacity:.4;cursor:not-allowed;}
 .rec-cloud-badge{font-size:.65rem;font-weight:800;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.18);color:#fff;display:inline-flex;align-items:center;gap:4px;}
-#rec-table-wrap table{white-space:nowrap;}
-#rec-table-wrap thead th{position:sticky;top:0;z-index:1;}
+.rec-cards-list{display:flex;flex-direction:column;gap:10px;padding:14px;}
+.rec-card-item{border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;background:#fff;}
+.rec-card-item .rec-card-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f1f5f9;}
+.rec-card-item .rec-card-title{font-weight:800;color:#0c2d55;font-size:.95rem;}
+.rec-card-item .rec-card-title small{font-weight:600;color:#64748b;font-size:.78rem;margin-left:6px;}
+.rec-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px 16px;}
+.rec-card-grid div span{display:block;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:#94a3b8;margin-bottom:2px;}
+.rec-card-grid div strong{display:block;font-size:.85rem;color:#1e293b;}
+.rec-card-obs{margin-top:10px;font-size:.8rem;color:#64748b;background:#f8fafc;border-radius:6px;padding:8px 10px;}
 .rec-badge-sim{background:#dcfce7;color:#166534;}
 .rec-badge-nao{background:#fee2e2;color:#b91c1c;}
 
@@ -275,10 +282,6 @@ tbody tr:hover{background:#f0f9ff;}
         <div class="stat stat-carvao stat-clicavel" onclick="pdAbrirDetalheCard('tempomedio')"><div class="lbl">⏱️ Tempo Médio/Carga</div><div class="val" id="pd-stat-tempomedio">-</div></div>
         <div class="stat stat-verde stat-clicavel" onclick="pdAbrirDetalheCard('bitrens')"><div class="lbl">🔀 Bitrens Identificados</div><div class="val" id="pd-stat-bitrens">0</div></div>
       </div>
-      <p style="font-size:.72rem;color:#64748b;text-align:center;margin:-4px 0 0;">👆 Clique em um card acima para ver os registros exatos que compõem aquele número.</p>
-      <p style="font-size:.75rem;color:#64748b;text-align:center;margin:-6px 0 0;">
-        ℹ️ Regra de contagem: mesma placa + doca = 1 carro. Mesma placa em docas diferentes = bitrem, contado como 2 carros.
-      </p>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="card" style="padding:0;overflow:hidden;">
@@ -530,18 +533,8 @@ tbody tr:hover{background:#f0f9ff;}
           <h3 style="margin:0;">📋 Registros (<span id="rec-count">0</span>)</h3>
           <span style="font-size:.72rem;color:#78350f;font-weight:700;">💾 Autosave ativo — nada é perdido</span>
         </div>
-        <div class="overflow-x-auto" id="rec-table-wrap" style="max-height:520px;">
-          <table>
-            <thead><tr>
-              <th>Data</th><th>Placa</th><th>Doca</th><th>Carga</th><th>Hora</th><th>Conferente</th><th>Fornecedor</th><th>Linha</th>
-              <th>Categoria</th><th class="text-center">Vol. Agenda</th><th class="text-center">Vol. Recebido</th><th class="text-center">Priori</th>
-              <th>Início</th><th>Término</th><th>Por Carga</th><th>Por Prod</th><th class="text-center">Avaria</th><th>Motivo DV</th>
-              <th class="text-center">Falta</th><th class="text-center">Sobra</th><th class="text-center">Valor DV</th><th>Transportadora</th><th>Motorista</th>
-              <th>Observações</th>
-              <th class="text-center">Ações</th>
-            </tr></thead>
-            <tbody id="rec-table-body"></tbody>
-          </table>
+        <div id="rec-table-wrap" style="max-height:640px;overflow-y:auto;overflow-x:hidden;">
+          <div id="rec-table-body" class="rec-cards-list"></div>
         </div>
         <div class="rec-pagination" id="rec-pagination"></div>
       </div>
@@ -553,12 +546,12 @@ tbody tr:hover{background:#f0f9ff;}
         <h3 style="color:#fff;">📈 Indicadores — Controle de Recebimento</h3>
         <p style="opacity:.85;margin:4px 0 14px;font-size:.82rem;">Visão gerencial de volumes, avarias, faltas, sobras e desempenho por fornecedor — calculado a partir de todos os registros da aba Controle de Recebimento.</p>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-          <div><label class="text-xs font-semibold" style="color:#bfdbfe;">Data início</label><input type="date" id="ind-f-data-ini" onchange="renderIndicadores()"></div>
-          <div><label class="text-xs font-semibold" style="color:#bfdbfe;">Data fim</label><input type="date" id="ind-f-data-fim" onchange="renderIndicadores()"></div>
+          <div><label class="text-xs font-semibold" style="color:#bfdbfe;">Data início</label><input type="date" id="ind-f-data-ini" onchange="renderIndicadores()" style="color:#0c2d55;"></div>
+          <div><label class="text-xs font-semibold" style="color:#bfdbfe;">Data fim</label><input type="date" id="ind-f-data-fim" onchange="renderIndicadores()" style="color:#0c2d55;"></div>
           <div><label class="text-xs font-semibold" style="color:#bfdbfe;">Linha</label>
-            <select id="ind-f-linha" onchange="renderIndicadores()"><option value="todos">Todas</option><option value="LB">LB</option><option value="LM">LM</option><option value="LV">LV</option></select>
+            <select id="ind-f-linha" onchange="renderIndicadores()" style="color:#0c2d55;"><option value="todos">Todas</option><option value="LB">LB</option><option value="LM">LM</option><option value="LV">LV</option></select>
           </div>
-          <div><label class="text-xs font-semibold" style="color:#bfdbfe;">Fornecedor</label><select id="ind-f-fornecedor" onchange="renderIndicadores()"><option value="todos">Todos</option></select></div>
+          <div><label class="text-xs font-semibold" style="color:#bfdbfe;">Fornecedor</label><select id="ind-f-fornecedor" onchange="renderIndicadores()" style="color:#0c2d55;"><option value="todos">Todos</option></select></div>
           <div style="display:flex;align-items:flex-end;"><button class="btn btn-gray" style="width:100%;" onclick="limparFiltrosIndicadores()">Limpar Filtros</button></div>
         </div>
       </div>
@@ -1420,24 +1413,8 @@ function renderRecebimento(pagina,semScroll){
   const inicio=(recPageAtual-1)*REC_POR_PAGINA;
   const pagina_registros=filtrados.slice(inicio,inicio+REC_POR_PAGINA);
 
-  const tbody=document.getElementById('rec-table-body');
-  tbody.innerHTML=pagina_registros.map(r=>{
-    const prioriBadge=r.priori==='SIM'?'<span class="badge rec-badge-sim">SIM</span>':(r.priori==='NÃO'?'<span class="badge rec-badge-nao">NÃO</span>':(r.priori||'-'));
-    return `<tr id="rec-row-${r.id}">
-      <td>${fmtDataBr(r.data)}</td><td class="font-semibold">${r.placa||'-'}</td><td>${r.doca||'-'}</td><td>${r.carga||'-'}</td><td>${r.hora||'-'}</td>
-      <td>${r.conferente||'-'}</td><td>${r.fornecedor||'-'}</td><td>${r.linha||'-'}</td><td>${r.categoria||'-'}</td>
-      <td class="text-center">${fmtNum(r.volAgenda)}</td><td class="text-center">${fmtNum(r.volRecebido)}</td><td class="text-center">${prioriBadge}</td>
-      <td>${r.inicio||'-'}</td><td>${r.termino||'-'}</td><td>${r.porCarga||'-'}</td><td>${r.porProd||'-'}</td>
-      <td class="text-center">${fmtNum(r.avaria)}</td><td>${r.motivoDv||'-'}</td>
-      <td class="text-center">${fmtNum(r.falta)}</td><td class="text-center">${fmtNum(r.sobra)}</td><td class="text-center">${fmtMoeda(r.valorDevolucao)}</td>
-      <td>${r.transportadora||'-'}</td><td>${r.motorista||'-'}</td>
-      <td>${r.observacoes||'-'}</td>
-      <td class="text-center">
-        <button onclick="abrirModalRecebimento('${r.id}')" class="btn-blue btn" style="padding:5px 9px;">✏️</button>
-        <button onclick="excluirRecebimento('${r.id}')" class="btn-red btn" style="padding:5px 9px;">🗑️</button>
-      </td>
-    </tr>`;
-  }).join('') || `<tr><td colspan="25" class="text-center text-gray-400 py-6">Nenhum registro encontrado com os filtros atuais.</td></tr>`;
+  const listWrap=document.getElementById('rec-table-body');
+  listWrap.innerHTML=pagina_registros.map(recRenderCardHtml).join('') || `<div class="text-center text-gray-400 py-6">Nenhum registro encontrado com os filtros atuais.</div>`;
 
   const pagWrap=document.getElementById('rec-pagination');
   let pagHtml='';
@@ -1447,6 +1424,42 @@ function renderRecebimento(pagina,semScroll){
   pagWrap.innerHTML=pagHtml;
 
   if(!semScroll) document.getElementById('rec-table-wrap').scrollTop=0;
+}
+
+/* Monta um card vertical para 1 registro (substitui a antiga linha de tabela) */
+function recRenderCardHtml(r){
+  const prioriBadge=r.priori==='SIM'?'<span class="badge rec-badge-sim">SIM</span>':(r.priori==='NÃO'?'<span class="badge rec-badge-nao">NÃO</span>':(r.priori||'-'));
+  const campo=(label,valor)=>`<div><span>${label}</span><strong>${valor}</strong></div>`;
+  return `<div class="rec-card-item" id="rec-row-${r.id}">
+    <div class="rec-card-top">
+      <div class="rec-card-title">🚚 ${r.placa||'-'}<small>${fmtDataBr(r.data)} · ${r.hora||'-'} · Doca ${r.doca||'-'} · Carga ${r.carga||'-'}</small></div>
+      <div>
+        <button onclick="abrirModalRecebimento('${r.id}')" class="btn-blue btn" style="padding:5px 10px;">✏️ Editar</button>
+        <button onclick="excluirRecebimento('${r.id}')" class="btn-red btn" style="padding:5px 10px;">🗑️ Excluir</button>
+      </div>
+    </div>
+    <div class="rec-card-grid">
+      ${campo('Conferente', r.conferente||'-')}
+      ${campo('Fornecedor', r.fornecedor||'-')}
+      ${campo('Linha', r.linha||'-')}
+      ${campo('Categoria', r.categoria||'-')}
+      ${campo('Prioridade', prioriBadge)}
+      ${campo('Vol. Agenda', fmtNum(r.volAgenda))}
+      ${campo('Vol. Recebido', fmtNum(r.volRecebido))}
+      ${campo('Início', r.inicio||'-')}
+      ${campo('Término', r.termino||'-')}
+      ${campo('Por Carga', r.porCarga||'-')}
+      ${campo('Por Prod', r.porProd||'-')}
+      ${campo('Avaria', fmtNum(r.avaria))}
+      ${campo('Motivo DV', r.motivoDv||'-')}
+      ${campo('Falta', fmtNum(r.falta))}
+      ${campo('Sobra', fmtNum(r.sobra))}
+      ${campo('Valor DV', fmtMoeda(r.valorDevolucao))}
+      ${campo('Transportadora', r.transportadora||'-')}
+      ${campo('Motorista', r.motorista||'-')}
+    </div>
+    ${r.observacoes?`<div class="rec-card-obs"><strong>Obs.:</strong> ${r.observacoes}</div>`:''}
+  </div>`;
 }
 
 /* ---------------- modal add/editar ---------------- */
