@@ -46,9 +46,7 @@ body{font-family:'Inter',sans-serif;background:linear-gradient(160deg,#0a1628 0%
 ::-webkit-scrollbar{width:8px;height:8px;}
 ::-webkit-scrollbar-track{background:#0f2847;}
 ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--ouro),var(--brasa2));border-radius:8px;}
-#app{max-width:100%;margin:0;padding:18px;box-sizing:border-box;min-height:calc(100vh - 34px);display:flex;flex-direction:column;}
-.panel{flex:1 1 auto;display:flex;flex-direction:column;}
-.panel>.tab-content{flex:1 1 auto;}
+#app{max-width:1800px;margin:0 auto;padding:18px;}
 .header-wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px;}
 .brand{display:flex;align-items:center;gap:14px;}
 .brand-icon{width:52px;height:52px;border-radius:50%;object-fit:cover;filter:drop-shadow(0 0 10px rgba(56,189,248,0.6));border:2px solid #38bdf8;}
@@ -109,14 +107,15 @@ tbody tr:hover{background:#f0f9ff;}
 .rec-row-exit{animation:recRowOut .28s ease-in forwards;}
 .rec-row-updated{animation:recFadeBg 1.1s ease-out;}
 .rec-modal-overlay{position:fixed;inset:0;background:rgba(10,22,40,.55);backdrop-filter:blur(2px);z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;}
-.rec-modal-box{background:var(--pergaminho);border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.5);width:100%;max-width:880px;max-height:92vh;overflow-y:auto;animation:recPop .22s ease-out;}
+.rec-modal-box{background:var(--pergaminho);border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.5);width:100%;max-width:980px;max-height:92vh;overflow-y:auto;animation:recPop .22s ease-out;}
 .rec-modal-head{position:sticky;top:0;background:linear-gradient(135deg,#0c2d55,#1d4ed8);color:#fff;padding:16px 22px;border-radius:16px 16px 0 0;display:flex;justify-content:space-between;align-items:center;z-index:2;}
 .rec-modal-head h3{margin:0;color:#fff;font-size:1.05rem;}
 .rec-modal-close{background:rgba(255,255,255,.15);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;line-height:1;}
 .rec-modal-body{padding:20px 22px;}
 .rec-field-group{margin-bottom:16px;}
 .rec-field-group h4{margin:0 0 8px;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#1d4ed8;}
-.rec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;}
+.rec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px 16px;align-items:start;}
+.rec-field input,.rec-field select,.rec-field textarea{width:100%;box-sizing:border-box;}
 .rec-field label{display:block;font-size:.68rem;font-weight:700;color:#64748b;margin-bottom:3px;text-transform:uppercase;letter-spacing:.03em;}
 .rec-modal-foot{padding:14px 22px;border-top:1px solid #dbeafe;display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:var(--pergaminho);border-radius:0 0 16px 16px;}
 #rec-toast-wrap{position:fixed;bottom:18px;right:18px;z-index:9500;display:flex;flex-direction:column;gap:8px;align-items:flex-end;}
@@ -216,6 +215,7 @@ tbody tr:hover{background:#f0f9ff;}
     <button class="tab-btn" data-tab="historico" onclick="switchTab('historico')">📋 Histórico de Ciclos</button>
     <button class="tab-btn" data-tab="database" onclick="switchTab('database')">💾 Banco de Dados</button>
     <button class="tab-btn" data-tab="recebimento" onclick="switchTab('recebimento')">📥 Controle de Recebimento</button>
+    <button class="tab-btn" data-tab="indicadores" onclick="switchTab('indicadores')">📈 Indicadores</button>
   </div>
 
   <div class="panel">
@@ -368,6 +368,22 @@ tbody tr:hover{background:#f0f9ff;}
       <div id="missing-alert" class="hidden" style="background:#fff7ed;border-left:4px solid #f97316;padding:14px;border-radius:8px;color:#7c2d12;font-weight:600;font-size:.85rem;"></div>
 
       <button class="btn btn-primary" style="padding:14px 26px;font-size:1rem;" onclick="processarCiclo()">⚔️ Processar e Consolidar Ciclo</button>
+
+      <div class="card" style="border:2px dashed #93c5fd;">
+        <h3>💾 Backup Geral da Ferramenta</h3>
+        <p style="font-size:.82rem;color:#64748b;margin-bottom:14px;">
+          Baixa em um único arquivo <strong>tudo</strong> que existe na ferramenta: Minha Equipe, Banco de Dados,
+          Histórico de Ciclos e Controle de Recebimento (todos os registros). Guarde esse arquivo periodicamente
+          como cópia de segurança — ele também pode ser usado para restaurar os dados se algo der errado.
+        </p>
+        <div class="flex gap-3 flex-wrap">
+          <button class="btn btn-green" onclick="baixarBackupCompleto()">⬇️ Baixar Backup Completo</button>
+          <label class="btn btn-blue" style="cursor:pointer;margin:0;">
+            ♻️ Restaurar Backup
+            <input type="file" accept=".json" class="hidden" onchange="restaurarBackupCompleto(event)">
+          </label>
+        </div>
+      </div>
     </div>
 
     <!-- ================= DASHBOARD ================= -->
@@ -529,6 +545,24 @@ tbody tr:hover{background:#f0f9ff;}
         </div>
         <div class="rec-pagination" id="rec-pagination"></div>
       </div>
+    </div>
+
+    <!-- ================= INDICADORES ================= -->
+    <div id="content-indicadores" class="tab-content hidden space-y-6">
+      <div class="card" style="background:linear-gradient(135deg,#0c2d55,#1d4ed8);border:none;color:#fff;">
+        <h3 style="color:#fff;">📈 Indicadores — Controle de Recebimento</h3>
+        <p style="opacity:.85;margin:4px 0 14px;font-size:.82rem;">Visão gerencial de volumes, avarias, faltas, sobras e desempenho por fornecedor — calculado a partir de todos os registros da aba Controle de Recebimento.</p>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div><label class="text-xs font-semibold" style="color:#bfdbfe;">Data início</label><input type="date" id="ind-f-data-ini" onchange="renderIndicadores()"></div>
+          <div><label class="text-xs font-semibold" style="color:#bfdbfe;">Data fim</label><input type="date" id="ind-f-data-fim" onchange="renderIndicadores()"></div>
+          <div><label class="text-xs font-semibold" style="color:#bfdbfe;">Linha</label>
+            <select id="ind-f-linha" onchange="renderIndicadores()"><option value="todos">Todas</option><option value="LB">LB</option><option value="LM">LM</option><option value="LV">LV</option></select>
+          </div>
+          <div><label class="text-xs font-semibold" style="color:#bfdbfe;">Fornecedor</label><select id="ind-f-fornecedor" onchange="renderIndicadores()"><option value="todos">Todos</option></select></div>
+          <div style="display:flex;align-items:flex-end;"><button class="btn btn-gray" style="width:100%;" onclick="limparFiltrosIndicadores()">Limpar Filtros</button></div>
+        </div>
+      </div>
+      <div id="indicadores-content"></div>
     </div>
 
   </div>
@@ -1433,10 +1467,10 @@ function recCampoHtml(key,label,tipo,valor){
   if(tipo==='textarea'){
     return `<div class="rec-field" style="grid-column:1/-1;"><label>${label}</label><textarea id="rf-${key}" rows="2" style="width:100%;">${String(v).replace(/</g,'&lt;')}</textarea></div>`;
   }
-  const inputType=(tipo==='numero'||tipo==='numero-decimal')?'number':(tipo==='data'?'date':(tipo==='hora'?'time':'text'));
+  const inputType=tipo==='numero'?'number':(tipo==='data'?'date':(tipo==='hora'?'time':'text'));
   const step=tipo==='numero-decimal'?'step="0.01"':'';
   const gatilho=(key==='inicio'||key==='termino'||key==='volRecebido')?' oninput="recAtualizarTemposModal()" onchange="recAtualizarTemposModal()"':'';
-  return `<div class="rec-field"><label>${label}</label><input type="${inputType}" ${step} id="rf-${key}" value="${String(v).replace(/"/g,'&quot;')}"${gatilho}></div>`;
+  return `<div class="rec-field"><label>${label}</label><input type="${inputType==='numero-decimal'?'number':inputType}" ${step} id="rf-${key}" value="${String(v).replace(/"/g,'&quot;')}"${gatilho}></div>`;
 }
 function abrirModalRecebimento(id){
   recModalEditId=id||null;
@@ -2052,6 +2086,261 @@ function pdAbrirDetalheCard(tipo){
   </div>`;
 }
 
+/* ---------------- Indicadores (KPIs gerenciais) ---------------- */
+let indCharts=[];
+function indPopularFiltros(){
+  const todos=recGetAllRecords();
+  const fornecedores=[...new Set(todos.map(r=>r.fornecedor).filter(Boolean))].sort();
+  pdPopularSelect('ind-f-fornecedor', fornecedores);
+}
+function limparFiltrosIndicadores(){
+  document.getElementById('ind-f-data-ini').value='';
+  document.getElementById('ind-f-data-fim').value='';
+  document.getElementById('ind-f-linha').value='todos';
+  document.getElementById('ind-f-fornecedor').value='todos';
+  renderIndicadores();
+}
+function indFiltrarRegistros(){
+  const todos=recGetAllRecords();
+  const dIni=document.getElementById('ind-f-data-ini').value;
+  const dFim=document.getElementById('ind-f-data-fim').value;
+  const linha=document.getElementById('ind-f-linha').value;
+  const fornecedor=document.getElementById('ind-f-fornecedor').value;
+  return todos.filter(r=>{
+    if(dIni && r.data && r.data<dIni) return false;
+    if(dFim && r.data && r.data>dFim) return false;
+    if(linha!=='todos' && r.linha!==linha) return false;
+    if(fornecedor!=='todos' && r.fornecedor!==fornecedor) return false;
+    return true;
+  });
+}
+function indPct(n){ return (Number(n)||0).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%'; }
+function renderIndicadores(){
+  const regs=indFiltrarRegistros();
+  indCharts.forEach(c=>c.destroy()); indCharts=[];
+  const content=document.getElementById('indicadores-content');
+  if(!content) return;
+
+  const totalCargas=regs.length;
+  const volAgenda=regs.reduce((s,r)=>s+Number(r.volAgenda||0),0);
+  const volRecebidoTotal=regs.reduce((s,r)=>s+Number(r.volRecebido||0),0);
+  const avarias=regs.reduce((s,r)=>s+Number(r.avaria||0),0);
+  const faltas=regs.reduce((s,r)=>s+Number(r.falta||0),0);
+  const sobras=regs.reduce((s,r)=>s+Number(r.sobra||0),0);
+  const devolucao=regs.reduce((s,r)=>s+Number(r.valorDevolucao||0),0);
+  const atendimento=volAgenda>0 ? (volRecebidoTotal/volAgenda*100) : 0;
+  const taxaAvariaGeral=volRecebidoTotal>0 ? (avarias/volRecebidoTotal*100) : 0;
+  const fornecedoresUnicos=new Set(regs.map(r=>r.fornecedor).filter(Boolean)).size;
+  const devolucaoMediaPorAvaria=avarias>0 ? (devolucao/avarias) : 0;
+
+  /* agregação por fornecedor */
+  const porFornecedor={};
+  regs.forEach(r=>{
+    const f=r.fornecedor||'—';
+    if(!porFornecedor[f]) porFornecedor[f]={cargas:0,volAgenda:0,volRecebido:0,avarias:0,faltas:0,sobras:0,devolucao:0};
+    const p=porFornecedor[f];
+    p.cargas++;
+    p.volAgenda+=Number(r.volAgenda||0);
+    p.volRecebido+=Number(r.volRecebido||0);
+    p.avarias+=Number(r.avaria||0);
+    p.faltas+=Number(r.falta||0);
+    p.sobras+=Number(r.sobra||0);
+    p.devolucao+=Number(r.valorDevolucao||0);
+  });
+  const fornecedoresArr=Object.keys(porFornecedor).map(f=>{
+    const p=porFornecedor[f];
+    return {
+      fornecedor:f, ...p,
+      taxaAvaria: p.volRecebido>0 ? (p.avarias/p.volRecebido*100) : 0,
+      pctDoTotal: volRecebidoTotal>0 ? (p.volRecebido/volRecebidoTotal*100) : 0
+    };
+  });
+  const rankingPorVolume=[...fornecedoresArr].sort((a,b)=>b.volRecebido-a.volRecebido);
+  const top10Volume=rankingPorVolume.slice(0,10);
+  const top10Ofensores=[...fornecedoresArr].filter(f=>f.avarias>0||f.devolucao>0)
+    .sort((a,b)=> b.devolucao-a.devolucao || b.avarias-a.avarias).slice(0,10);
+
+  /* agregação por linha */
+  const porLinha={};
+  regs.forEach(r=>{
+    const l=r.linha||'—';
+    if(!porLinha[l]) porLinha[l]={cargas:0,volAgenda:0,volRecebido:0,avarias:0,faltas:0,sobras:0,devolucao:0};
+    const p=porLinha[l];
+    p.cargas++; p.volAgenda+=Number(r.volAgenda||0); p.volRecebido+=Number(r.volRecebido||0);
+    p.avarias+=Number(r.avaria||0); p.faltas+=Number(r.falta||0); p.sobras+=Number(r.sobra||0); p.devolucao+=Number(r.valorDevolucao||0);
+  });
+
+  content.innerHTML=`
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="stat stat-carvao"><div class="lbl">Total de Cargas</div><div class="val">${pdFormatarNumero(totalCargas)}</div></div>
+      <div class="stat stat-brasa"><div class="lbl">Vol. Agendado</div><div class="val">${pdFormatarNumero(volAgenda)}</div></div>
+      <div class="stat stat-ouro"><div class="lbl">Vol. Recebido</div><div class="val">${pdFormatarNumero(volRecebidoTotal)}</div></div>
+      <div class="stat stat-verde"><div class="lbl">% Atendimento</div><div class="val">${indPct(atendimento)}</div></div>
+      <div class="stat stat-carvao"><div class="lbl">Avarias (qtd)</div><div class="val">${pdFormatarNumero(avarias)}</div></div>
+      <div class="stat stat-brasa"><div class="lbl">Faltas</div><div class="val">${pdFormatarNumero(faltas)}</div></div>
+      <div class="stat stat-ouro"><div class="lbl">Sobras</div><div class="val">${pdFormatarNumero(sobras)}</div></div>
+      <div class="stat stat-verde"><div class="lbl">Valor Devolução</div><div class="val">${pdFormatarMoeda(devolucao)}</div></div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="stat" style="background:linear-gradient(135deg,#7c2d12,#c2410c);"><div class="lbl">Taxa de Avaria (sobre vol. recebido)</div><div class="val">${indPct(taxaAvariaGeral)}</div></div>
+      <div class="stat" style="background:linear-gradient(135deg,#581c87,#7e22ce);"><div class="lbl">Fornecedores Ativos</div><div class="val">${fornecedoresUnicos}</div></div>
+      <div class="stat" style="background:linear-gradient(135deg,#0f172a,#334155);"><div class="lbl">Devolução Média p/ Avaria</div><div class="val">${pdFormatarMoeda(devolucaoMediaPorAvaria)}</div></div>
+      <div class="stat" style="background:linear-gradient(135deg,#166534,#16a34a);"><div class="lbl">Vol. Médio por Carga</div><div class="val">${pdFormatarNumero(totalCargas>0?Math.round(volRecebidoTotal/totalCargas):0)}</div></div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="card"><h3>🏭 Top 10 Fornecedores — Volume Recebido</h3><canvas id="ind-chart-volume" height="260"></canvas></div>
+      <div class="card"><h3>⚠️ Top 10 Maiores Ofensores — Avarias/Devolução</h3><canvas id="ind-chart-ofensores" height="260"></canvas></div>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 20px;background:#fdf1d8;"><h3 style="margin:0;">🏆 Ranking Completo de Fornecedores</h3></div>
+      <div class="overflow-x-auto" style="max-height:420px;">
+        <table>
+          <thead><tr>
+            <th>Fornecedor</th><th class="text-center">Cargas</th><th class="text-center">Vol. Agenda</th><th class="text-center">Vol. Recebido</th>
+            <th class="text-center">% do Total</th><th class="text-center">Avarias</th><th class="text-center">Taxa Avaria</th>
+            <th class="text-center">Faltas</th><th class="text-center">Sobras</th><th class="text-center">Devolução (R$)</th>
+          </tr></thead>
+          <tbody>${rankingPorVolume.map(f=>`
+            <tr>
+              <td><strong>${f.fornecedor}</strong></td>
+              <td class="text-center">${f.cargas}</td>
+              <td class="text-center">${pdFormatarNumero(f.volAgenda)}</td>
+              <td class="text-center">${pdFormatarNumero(f.volRecebido)}</td>
+              <td class="text-center">${indPct(f.pctDoTotal)}</td>
+              <td class="text-center">${pdFormatarNumero(f.avarias)}</td>
+              <td class="text-center">${indPct(f.taxaAvaria)}</td>
+              <td class="text-center">${pdFormatarNumero(f.faltas)}</td>
+              <td class="text-center">${pdFormatarNumero(f.sobras)}</td>
+              <td class="text-center">${pdFormatarMoeda(f.devolucao)}</td>
+            </tr>`).join('') || `<tr><td colspan="10" style="text-align:center;color:#94a3b8;padding:16px;">Sem registros no período/filtros selecionados</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden;border:2px solid #fecaca;">
+      <div style="padding:14px 20px;background:#fef2f2;"><h3 style="margin:0;color:#991b1b;">🚨 Maiores Ofensores (ordenado por valor de devolução)</h3></div>
+      <div class="overflow-x-auto">
+        <table>
+          <thead><tr><th>Fornecedor</th><th class="text-center">Avarias</th><th class="text-center">Taxa Avaria</th><th class="text-center">Faltas</th><th class="text-center">Sobras</th><th class="text-center">Devolução (R$)</th></tr></thead>
+          <tbody>${top10Ofensores.map(f=>`
+            <tr>
+              <td><strong>${f.fornecedor}</strong></td>
+              <td class="text-center">${pdFormatarNumero(f.avarias)}</td>
+              <td class="text-center">${indPct(f.taxaAvaria)}</td>
+              <td class="text-center">${pdFormatarNumero(f.faltas)}</td>
+              <td class="text-center">${pdFormatarNumero(f.sobras)}</td>
+              <td class="text-center">${pdFormatarMoeda(f.devolucao)}</td>
+            </tr>`).join('') || `<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:16px;">Nenhuma avaria ou devolução registrada no período/filtros selecionados 🎉</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 20px;background:#fdf1d8;"><h3 style="margin:0;">📊 Resumo por Linha</h3></div>
+      <div class="overflow-x-auto">
+        <table>
+          <thead><tr><th>Linha</th><th class="text-center">Cargas</th><th class="text-center">Vol. Agenda</th><th class="text-center">Vol. Recebido</th><th class="text-center">Avarias</th><th class="text-center">Faltas</th><th class="text-center">Sobras</th><th class="text-center">Devolução (R$)</th></tr></thead>
+          <tbody>${Object.keys(porLinha).sort().map(l=>{
+            const p=porLinha[l];
+            return `<tr><td><strong>${l}</strong></td><td class="text-center">${p.cargas}</td><td class="text-center">${pdFormatarNumero(p.volAgenda)}</td><td class="text-center">${pdFormatarNumero(p.volRecebido)}</td><td class="text-center">${pdFormatarNumero(p.avarias)}</td><td class="text-center">${pdFormatarNumero(p.faltas)}</td><td class="text-center">${pdFormatarNumero(p.sobras)}</td><td class="text-center">${pdFormatarMoeda(p.devolucao)}</td></tr>`;
+          }).join('') || `<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:16px;">Sem registros no período/filtros selecionados</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  setTimeout(()=>{
+    const canvasVol=document.getElementById('ind-chart-volume');
+    if(canvasVol && top10Volume.length){
+      indCharts.push(new Chart(canvasVol,{
+        type:'bar',
+        data:{labels:top10Volume.map(f=>f.fornecedor), datasets:[{data:top10Volume.map(f=>f.volRecebido), backgroundColor:'#1d4ed8', borderRadius:6}]},
+        options:{indexAxis:'y',plugins:{legend:{display:false}}, scales:{y:{ticks:{autoSkip:false}}}}
+      }));
+    }
+    const canvasOf=document.getElementById('ind-chart-ofensores');
+    if(canvasOf && top10Ofensores.length){
+      indCharts.push(new Chart(canvasOf,{
+        type:'bar',
+        data:{labels:top10Ofensores.map(f=>f.fornecedor), datasets:[{label:'Devolução (R$)',data:top10Ofensores.map(f=>f.devolucao), backgroundColor:'#dc2626', borderRadius:6}]},
+        options:{indexAxis:'y',plugins:{legend:{display:false}}, scales:{y:{ticks:{autoSkip:false}}}}
+      }));
+    }
+  },60);
+}
+
+/* ---------------- backup geral (toda a ferramenta) ---------------- */
+function coletarBackupCompleto(){
+  return {
+    _tipo:'backup_equipe_guerreiros_bloco8',
+    _versao:1,
+    geradoEm:new Date().toISOString(),
+    employees,
+    databaseRecords,
+    ciclosHistorico,
+    recOverrides
+  };
+}
+function baixarBackupCompleto(){
+  try{
+    const dados=coletarBackupCompleto();
+    const blob=new Blob([JSON.stringify(dados,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const carimbo=new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+    a.href=url;
+    a.download=`backup_equipe_guerreiros_${carimbo}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    alert('✅ Backup completo baixado com sucesso!');
+  }catch(err){
+    alert('Não foi possível gerar o backup: '+(err&&err.message?err.message:err));
+  }
+}
+function restaurarBackupCompleto(event){
+  const file=event.target.files&&event.target.files[0];
+  if(!file) return;
+  const ok=confirm('Restaurar este backup vai SUBSTITUIR todos os dados atuais da ferramenta (Minha Equipe, Banco de Dados, Histórico de Ciclos e Controle de Recebimento) para todo mundo que usa a ferramenta, pois os dados são sincronizados na nuvem.\n\nEsta ação não pode ser desfeita. Deseja continuar?');
+  if(!ok){ event.target.value=''; return; }
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const dados=JSON.parse(e.target.result);
+      if(!dados||typeof dados!=='object') throw new Error('Arquivo inválido.');
+      if(Array.isArray(dados.employees)) employees=dados.employees;
+      if(Array.isArray(dados.databaseRecords)) databaseRecords=dados.databaseRecords;
+      if(Array.isArray(dados.ciclosHistorico)) ciclosHistorico=dados.ciclosHistorico;
+      if(dados.recOverrides&&typeof dados.recOverrides==='object') recOverrides=dados.recOverrides;
+      saveEmployees();
+      saveDatabase();
+      saveCiclos();
+      recSaveLocalOverrides();
+      if(window.fbSyncPush){
+        window.fbSyncPush('employees',{employees});
+        window.fbSyncPush('database',{databaseRecords});
+        window.fbSyncPush('ciclos',{ciclosHistorico});
+      }
+      if(window.fbRecebimentoPush){
+        Object.keys(recOverrides).forEach(id=>{ window.fbRecebimentoPush(id,recOverrides[id]).catch(()=>{}); });
+      }
+      alert('✅ Backup restaurado com sucesso! A página será recarregada.');
+      location.reload();
+    }catch(err){
+      alert('Erro ao ler o arquivo de backup: '+(err&&err.message?err.message:err));
+    }finally{
+      event.target.value='';
+    }
+  };
+  reader.readAsText(file);
+}
+
 /* ---------------- inicialização ---------------- */
 function initRecebimento(){
   recBuildSeedMap();
@@ -2071,6 +2360,7 @@ function switchTab(tab){
   if(tab==='historico') renderHistorico();
   if(tab==='recebimento') renderRecebimento(recPageAtual);
   if(tab==='paineldia'){ pdPopularFiltros(); renderPainelDia(); }
+  if(tab==='indicadores'){ indPopularFiltros(); renderIndicadores(); }
 }
 function refreshAll(){
   if(currentCicloView||ciclosHistorico[0]){ renderDashboard(); renderRanking(); alert('✅ Atualizado!'); }
