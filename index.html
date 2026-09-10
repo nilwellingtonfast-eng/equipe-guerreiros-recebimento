@@ -46,7 +46,9 @@ body{font-family:'Inter',sans-serif;background:linear-gradient(160deg,#0a1628 0%
 ::-webkit-scrollbar{width:8px;height:8px;}
 ::-webkit-scrollbar-track{background:#0f2847;}
 ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--ouro),var(--brasa2));border-radius:8px;}
-#app{max-width:1800px;margin:0 auto;padding:18px;}
+#app{max-width:100%;margin:0;padding:18px;box-sizing:border-box;min-height:calc(100vh - 34px);display:flex;flex-direction:column;}
+.panel{flex:1 1 auto;display:flex;flex-direction:column;}
+.panel>.tab-content{flex:1 1 auto;}
 .header-wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px;}
 .brand{display:flex;align-items:center;gap:14px;}
 .brand-icon{width:52px;height:52px;border-radius:50%;object-fit:cover;filter:drop-shadow(0 0 10px rgba(56,189,248,0.6));border:2px solid #38bdf8;}
@@ -1431,10 +1433,10 @@ function recCampoHtml(key,label,tipo,valor){
   if(tipo==='textarea'){
     return `<div class="rec-field" style="grid-column:1/-1;"><label>${label}</label><textarea id="rf-${key}" rows="2" style="width:100%;">${String(v).replace(/</g,'&lt;')}</textarea></div>`;
   }
-  const inputType=tipo==='numero'?'number':(tipo==='data'?'date':(tipo==='hora'?'time':'text'));
+  const inputType=(tipo==='numero'||tipo==='numero-decimal')?'number':(tipo==='data'?'date':(tipo==='hora'?'time':'text'));
   const step=tipo==='numero-decimal'?'step="0.01"':'';
   const gatilho=(key==='inicio'||key==='termino'||key==='volRecebido')?' oninput="recAtualizarTemposModal()" onchange="recAtualizarTemposModal()"':'';
-  return `<div class="rec-field"><label>${label}</label><input type="${inputType==='numero-decimal'?'number':inputType}" ${step} id="rf-${key}" value="${String(v).replace(/"/g,'&quot;')}"${gatilho}></div>`;
+  return `<div class="rec-field"><label>${label}</label><input type="${inputType}" ${step} id="rf-${key}" value="${String(v).replace(/"/g,'&quot;')}"${gatilho}></div>`;
 }
 function abrirModalRecebimento(id){
   recModalEditId=id||null;
